@@ -4,8 +4,6 @@
       <root url="jar://C:/Program Files/processing-3.4-windows64/core/library/core.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="file://$USER_HOME$/Downloads/processing-processing-0265-3.4/core/src" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>
