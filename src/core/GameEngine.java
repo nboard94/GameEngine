@@ -14,8 +14,10 @@ public class GameEngine extends PApplet {
     private ArrayList<Rectangle> walls = new ArrayList<Rectangle>();
     private Rectangle r1;
 
-    // up down left right
-    private boolean[] keys = {false, false, false, false};
+    int speed = 5;
+
+    // up down left right space
+    private boolean[] keys = {false, true, false, false, false};
 
     public static void main(String[] args) {
         PApplet.main("core.GameEngine");
@@ -38,16 +40,20 @@ public class GameEngine extends PApplet {
     }
 
     public void draw() {
-        background(151);
+        background(93, 188, 210);
 
+        fill(204, 102, 0);
         Rectangle cRec;
         for(int i = 0; i < walls.size(); i++) {
             cRec = walls.get(i);
             rect((float) cRec.getX(), (float) cRec.getY(), (float) cRec.getWidth(), (float) cRec.getHeight());
         }
 
+        fill(153);
         rect((float) r1.getX(), (float) r1.getY(), (float) r1.getWidth(), (float) r1.getHeight());
         moveRect();
+
+        System.out.println(grounded(r1));
     }
 
     public void keyPressed() {
@@ -64,6 +70,9 @@ public class GameEngine extends PApplet {
             else if(keyCode==RIGHT) {
                 keys[3] = true;
             }
+        }
+        else if(keyCode==' ') {
+            keys[4] = true;
         }
     }
 
@@ -83,19 +92,19 @@ public class GameEngine extends PApplet {
             }
         }
         else if(keyCode==' ') {
-            gravity();
+            keys[4] = false;
         }
     }
 
     private void moveRect() {
 
         Rectangle fRec;
-        int speed = 5;
+        int jump = 100;
 
-        if(keys[0]) {
+        if((keys[0] || keys[4]) && grounded(r1)) {
             boolean move = true;
             fRec = (Rectangle)r1.clone();
-            fRec.translate(0, -speed);
+            fRec.translate(0, -jump);
             if(!bounds.contains(fRec)) move = false;
 
             Rectangle cRec;
@@ -106,10 +115,11 @@ public class GameEngine extends PApplet {
 
             if(move) r1 = fRec;
         }
-        if(keys[1]) {
+//        if(keys[1]) {
+         if(true) {
             boolean move = true;
             fRec = (Rectangle)r1.clone();
-            fRec.translate(0, +speed);
+            fRec.translate(0, +5);
             if(!bounds.contains(fRec)) move = false;
 
             Rectangle cRec;
@@ -150,8 +160,21 @@ public class GameEngine extends PApplet {
         }
     }
 
-    private void gravity() {
-        float g = 0;
+    private boolean grounded(Rectangle r) {
 
+        boolean grounded = false;
+        Rectangle fRec = (Rectangle)r.clone();
+        fRec.translate(0, +speed);
+
+        //Check if touching any wall blocks
+        Rectangle cRec;
+        for(int i = 0; i < walls.size(); i++) {
+            cRec = walls.get(i);
+            if(fRec.intersects(cRec)) grounded = true;
+        }
+
+        //Check if touching ground
+        if(!bounds.contains(fRec)) grounded = true;
+        return grounded;
     }
 }
