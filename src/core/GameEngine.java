@@ -5,15 +5,18 @@ import processing.core.PApplet;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class GameEngine extends PApplet {
+public  class GameEngine extends PApplet {
 
+    // Game instance (singleton)
+    private GameEngine game;
     // Game instance ID
     private static java.util.UUID gameID;
-
+    // Bounding rectangle for the screen
     private Rectangle bounds;
-    private ArrayList<Rectangle> walls = new ArrayList<Rectangle>();
+    // List of walls
+    private ArrayList<Rectangle> walls = new ArrayList<>();
+    // Player rectangle
     private Rectangle r1;
-
     int speed = 5;
 
     // up down left right space
@@ -27,21 +30,30 @@ public class GameEngine extends PApplet {
         System.out.print(gameID.toString());
     }
 
+    // Game Settings
     public void settings() {
+        // Set size of game screen
         size(500, 500);
     }
 
+    // Initial Game Setup
     public void setup() {
+        // Set bounding rectangle based off of game screen size
         bounds = new Rectangle(0, 0, width, height);
+        // Create player
         r1 = new Rectangle(0, 450, 50, 50);
 
+        // Add some walls
         walls.add(new Rectangle(250, 450, 100, 25));
-        walls.add(new Rectangle(150, 250, 100, 25));
+        walls.add(new Rectangle(350, 400, 150, 25));
     }
 
+    // Main game loop
     public void draw() {
+        // Clear screen and draw background
         background(93, 188, 210);
 
+        // Draw all walls
         fill(204, 102, 0);
         Rectangle cRec;
         for(int i = 0; i < walls.size(); i++) {
@@ -49,51 +61,32 @@ public class GameEngine extends PApplet {
             rect((float) cRec.getX(), (float) cRec.getY(), (float) cRec.getWidth(), (float) cRec.getHeight());
         }
 
+        //Draw player and update
         fill(153);
         rect((float) r1.getX(), (float) r1.getY(), (float) r1.getWidth(), (float) r1.getHeight());
         moveRect();
-
-        System.out.println(grounded(r1));
     }
 
+    // Handle a key being pressed
     public void keyPressed() {
         if(key==CODED) {
-            if(keyCode==UP) {
-                keys[0] = true;
-            }
-            else if(keyCode==DOWN) {
-                keys[1] = true;
-            }
-            else if(keyCode==LEFT) {
-                keys[2] = true;
-            }
-            else if(keyCode==RIGHT) {
-                keys[3] = true;
-            }
+            if(keyCode==UP) keys[0] = true;
+            else if(keyCode==DOWN) keys[1] = true;
+            else if(keyCode==LEFT) keys[2] = true;
+            else if(keyCode==RIGHT)  keys[3] = true;
         }
-        else if(keyCode==' ') {
-            keys[4] = true;
-        }
+        else if(keyCode==' ') keys[4] = true;
     }
 
+    // Handle a key being released
     public void keyReleased() {
         if(key==CODED) {
-            if(keyCode==UP) {
-                keys[0] = false;
-            }
-            else if(keyCode==DOWN) {
-                keys[1] = false;
-            }
-            else if(keyCode==LEFT) {
-                keys[2] = false;
-            }
-            else if(keyCode==RIGHT) {
-                keys[3] = false;
-            }
+            if(keyCode==UP) keys[0] = false;
+            else if(keyCode==DOWN) keys[1] = false;
+            else if(keyCode==LEFT) keys[2] = false;
+            else if(keyCode==RIGHT) keys[3] = false;
         }
-        else if(keyCode==' ') {
-            keys[4] = false;
-        }
+        else if(keyCode==' ') keys[4] = false;
     }
 
     private void moveRect() {

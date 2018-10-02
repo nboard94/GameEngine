@@ -1,76 +1,68 @@
+// Resources used:
+// The provided client/server example
+// https://www.geeksforgeeks.org/introducing-threads-socket-programming-java/
 package networking;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import processing.core.PApplet;
 
-public class Server implements Runnable
+import java.io.*;
+import java.util.*;
+import java.net.*;
+
+// Server class 
+public class Server extends PApplet
 {
+    // The only instance of server
+    private static Server instance = null;
+    // List of client threads
+    static List<Thread> clients = null;
+    // Port to listen on
+    static final int port = 1510;
 
-    private static CopyOnWriteArrayList<DataInputStream> input_streams;
-    private static CopyOnWriteArrayList<DataOutputStream> output_streams;
+    // private constructor for singleton
+    public Server() {
+        clients = Collections.synchronizedList(new ArrayList<>());
+    }
 
-    private static ServerSocket ss;
+    // returns the singleton server instance
+    public static Server getInstance() {
+        if(instance==null) instance = new Server();
+        return instance;
+    }
 
-    public Server() { }
+    public void settings() {
 
-    public void run()
-    {
-        try
-        {
-            while(true)
-            {
-                System.out.println("About to accept...");
-                Socket s = ss.accept();
-                System.out.println("New connection Established");
-                synchronized(this)
-                {
-                    output_streams.add(new DataOutputStream(s.getOutputStream()));
-                    input_streams.add(new DataInputStream(s.getInputStream()));
-                }
-                System.out.println("Streams successfully added.");
-            }
+    }
+
+    public void setup() {
+        // maintain list of all threads handing clients.
+        ArrayList<Thread> clients = new ArrayList<>();
+        // server is listening on port 5056
+        ServerSocket ss = null;
+        try {
+            ss = new ServerSocket(port);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch(IOException iox)
+
+        // running infinite loop for getting
+        // client request
+        while (true)
         {
-            iox.printStackTrace();
+            Thread listener = new ServerClientListener(ss);
+            listener.run();
+
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException
-    {
-        ss = new ServerSocket(5200);
-        input_streams = new CopyOnWriteArrayList<DataInputStream>();
-        output_streams = new CopyOnWriteArrayList<DataOutputStream>();
+    public void draw() {
 
-        Server server = new Server();
-        (new Thread(server)).start();
-
-        int iter = 0;
-        while(true)
-        {
-            synchronized(server)
-            {
-                for(DataInputStream din : input_streams)
-                {
-                    System.out.println("Server received: " + din.readInt() + " " + din.readInt());
-                }
-            }
-            System.out.println("Server completed reading all streams, now writting");
-            synchronized(server)
-            {
-                for(DataOutputStream dout : output_streams)
-                {
-                    dout.writeInt(0);
-                    dout.writeInt(iter);
-                }
-                Thread.sleep(2000);
-            }
-            ++iter;
-        }
     }
 
+
+    public static void main(String[] args)
+    {
+        PApplet.main("networking.Server");
+    }
 }
+
