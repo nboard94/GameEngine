@@ -30,11 +30,8 @@ public class Server extends PApplet
         return instance;
     }
 
-    public void settings() {
-
-    }
-
-    public void setup() {
+    public static void main(String[] args)
+    {
         // maintain list of all threads handing clients.
         ArrayList<Thread> clients = new ArrayList<>();
         // server is listening on port 5056
@@ -55,14 +52,5 @@ public class Server extends PApplet
         }
     }
 
-    public void draw() {
-
-    }
-
-
-    public static void main(String[] args)
-    {
-        PApplet.main("networking.Server");
-    }
 }
 
