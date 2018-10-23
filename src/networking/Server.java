@@ -1,56 +1,92 @@
-// Resources used:
-// The provided client/server example
-// https://www.geeksforgeeks.org/introducing-threads-socket-programming-java/
 package networking;
 
+import objects.objects._GameObject;
 import processing.core.PApplet;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-// Server class 
-public class Server extends PApplet
+public class Server extends PApplet implements Runnable
 {
-    // The only instance of server
-    private static Server instance = null;
-    // List of client threads
-    static List<Thread> clients = null;
-    // Port to listen on
-    static final int port = 1510;
+    private static final Server instance = new Server();
+    private static final List<ServerWaiter> clients = Collections.synchronizedList(new ArrayList<>());
+    private static final int port = 15150;
 
-    // private constructor for singleton
-    public Server() {
-        clients = Collections.synchronizedList(new ArrayList<>());
-    }
+    private static final ConcurrentLinkedQueue<_GameObject> inputCollection = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<_GameObject> outputCollection = new ConcurrentLinkedQueue<>();
 
-    // returns the singleton server instance
-    public static Server getInstance() {
-        if(instance==null) instance = new Server();
-        return instance;
-    }
+    /*
+    *   singleton private constructor
+    */
+    private Server() {}
 
+    /*
+     *   Run the server independent from the game.
+     */
     public static void main(String[] args)
     {
-        // maintain list of all threads handing clients.
-        ArrayList<Thread> clients = new ArrayList<>();
-        // server is listening on port 5056
-        ServerSocket ss = null;
+        Server.getInstance().run();
+    }
+
+    /*
+     *   Creates the server socket to accept incoming requests.
+     *   Create threads for incoming clients.
+     */
+    @Override
+    public void run()
+    {
         try {
-            ss = new ServerSocket(port);
+            ServerSocket ss = new ServerSocket(port);
+            //System.out.println("The server has started, accepting clients...");
+
+            //noinspection InfiniteLoopStatement
+            while(true) {
+
+                Socket s = ss.accept();
+
+                ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
+                ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
+
+                Thread t = new Thread(new ServerWaiter(s, dis, dos));
+                t.start();
+
+            }
+        } catch(BindException e) {
+            // Server on this port is presumed to already be running
+            //System.out.println("Another server is already running...");
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // running infinite loop for getting
-        // client request
-        while (true)
-        {
-            Thread listener = new ServerClientListener(ss);
-            listener.run();
-
-        }
     }
 
+    /*
+    *   Returns the singleton instance of the server.
+    */
+    public static Server getInstance()
+    {
+        return instance;
+    }
+
+    /*
+     *   Returns the list of clients.
+     */
+    public static List<ServerWaiter> getClients()
+    {
+        return clients;
+    }
+
+    // Flush and return the input collection
+    public static ConcurrentLinkedQueue<_GameObject> getInput() {
+        ConcurrentLinkedQueue<_GameObject> temp = new ConcurrentLinkedQueue<>(inputCollection);
+        inputCollection.clear();
+        return temp;
+    }
+
+    // Add this object to the output collection
+    public static void sendOutput(_GameObject o) {
+        outputCollection.add(o);
+    }
 }
 

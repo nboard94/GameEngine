@@ -1,60 +1,92 @@
-// Resources used:
-// The provided client/server example
-// https://www.geeksforgeeks.org/introducing-threads-socket-programming-java/
 package networking;
 
-import java.io.*;
-import java.net.*;
-import java.util.Scanner;
+import objects.objects._GameObject;
 
-// Client class 
-public class Client
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ConnectException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+
+public class Client implements Runnable
 {
-    public static void main(String[] args) throws IOException
-    {
-        try
-        {
-            Scanner scn = new Scanner(System.in);
 
-            // getting localhost ip 
-            InetAddress ip = InetAddress.getByName("localhost");
+    private static Client instance;
+    private static final ConcurrentLinkedQueue<_GameObject> inputCollection = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<_GameObject> outputCollection = new ConcurrentLinkedQueue<>();
 
-            // establish the connection with server port 5056 
-            Socket s = new Socket(ip, 1510);
+    private Client() {}
 
-            // obtaining input and out streams 
-            DataInputStream dis = new DataInputStream(s.getInputStream());
-            DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    public static Client getInstance() {
+        if(instance==null) instance = new Client();
+        return instance;
+    }
 
-            // the following loop performs the exchange of 
-            // information between client and client handler 
-            while (true)
-            {
-                System.out.println(dis.readUTF());
-                String tosend = scn.nextLine();
-                dos.writeUTF(tosend);
+    @Override
+    public void run() {
 
-                // If client sends exit,close this connection
-                // and then break from the while loop
-                if(tosend.equals("Exit"))
-                {
-                    System.out.println("Closing this connection : " + s);
-                    s.close();
-                    System.out.println("Connection closed");
-                    break;
-                }
+        Socket s = null;
+        try {
+            InetAddress host = InetAddress.getByName("localhost");
+            s = new Socket(host, 15150);
 
-                // printing date or time as requested by client 
-                String received = dis.readUTF();
-                System.out.println(received);
+            ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
+            ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
+            Random rand = new Random();
+
+            //noinspection InfiniteLoopStatement
+            while (true) {
+
+//                // Write from OutputCollection to server
+//                synchronized (Client.outputCollection) {
+//                    dos.writeObject(Client.outputCollection);
+//                }
+//
+//                // Receive from InputCollection to server
+//                synchronized (Client.inputCollection) {
+//                    Client.inputCollection.add((_GameObject) dis.readObject());
+//                }
+
+                Integer i1 = rand.nextInt(1000) + 1;
+                dos.writeObject(i1);
+                System.out.println("Sent: " + i1);
+                Integer i2 = (Integer) dis.readObject();
+                System.out.println("Received: " + i2);
+                TimeUnit.SECONDS.sleep(5);
             }
+        } catch(ConnectException e) {
+            System.out.println("Could not find server to connect to.");
 
-            // closing resources
-            scn.close();
-            dis.close();
-            dos.close();
-        }catch(Exception e){
+        } catch(Exception e) {
+            System.out.println("Connection with the server has been lost.");
             e.printStackTrace();
         }
+
+        try {
+            s.close();
+        } catch(IOException e) {
+            System.out.println("Could not close connection.");
+        }
     }
-} 
+
+    // Flush and return the input collection
+    public static ConcurrentLinkedQueue<_GameObject> getInput() {
+        ConcurrentLinkedQueue<_GameObject> temp = new ConcurrentLinkedQueue<>(inputCollection);
+        inputCollection.clear();
+        return temp;
+    }
+
+    // Add this object to the output collection
+    public static void sendOutput(_GameObject o) {
+        outputCollection.add(o);
+    }
+
+    public static void main(String[] args) {
+        Thread t = new Thread(new Client());
+        t.start();
+    }
+}
