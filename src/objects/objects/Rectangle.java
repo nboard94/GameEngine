@@ -54,17 +54,37 @@ public class Rectangle extends _GameObject implements Displayable {
         parent.rect(x, y, 25, 25);
     }
 
+    @Override
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public int getX() {
+        return this.x;
+    }
+
+    @Override
+    public int getY() {
+        return this.y;
+    }
+
     public void setDirection(){
         HashMap<Integer, Boolean> keys = GameEngine.getPressedKeys();
 
         if ( keys.get(parent.LEFT) != null ) left = keys.get(parent.LEFT);
-        else if ( keys.get(parent.RIGHT) != null ) right = keys.get(parent.RIGHT);
-        else if ( keys.get(' ') != null ) jump = keys.get(' ');
+        if ( keys.get(parent.RIGHT) != null ) right = keys.get(parent.RIGHT);
+        if ( keys.get(32) != null ) jump = keys.get(32);
     }
 
     public void move(){
         if ( jump ){
-            y -= 180;
+            y -= 100;
             jump = !jump;
         }
         x -= (left?  5 : 0);
@@ -81,7 +101,8 @@ public class Rectangle extends _GameObject implements Displayable {
     }
 
     public void confineToEdges(){
-        x = PApplet.constrain(x, 0+25, parent.width+25);
+        x = PApplet.constrain(x, 25, parent.width+25);
+        y = PApplet.constrain(y, 25, parent.height+25);
     }
 
     public void changeColor(boolean col){

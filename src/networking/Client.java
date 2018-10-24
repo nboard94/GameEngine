@@ -53,9 +53,9 @@ public class Client implements Runnable
 
                 Integer i1 = rand.nextInt(1000) + 1;
                 dos.writeObject(i1);
-                System.out.println("Sent: " + i1);
+                //System.out.println("Sent: " + i1);
                 Integer i2 = (Integer) dis.readObject();
-                System.out.println("Received: " + i2);
+                //System.out.println("Received: " + i2);
                 TimeUnit.SECONDS.sleep(5);
             }
         } catch(ConnectException e) {

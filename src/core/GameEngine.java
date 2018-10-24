@@ -3,18 +3,18 @@ package core;
 import networking.Client;
 import networking.Server;
 import objects.components.Displayable;
-import objects.objects.DeathZone;
-import objects.objects.Rectangle;
-import objects.objects._GameObject;
+import objects.objects.*;
 import processing.core.PApplet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class GameEngine extends PApplet {
+public class GameEngine extends PAppletWrap {
 
-    public static int width = 500;
-    public static int height = 500;
+    SpawnPoint playerSpawn;
+
+    public static int width = 700;
+    public static int height = 600;
     public static double gravity = 0.6;
 
     private static GameEngine instance;
@@ -57,11 +57,26 @@ public class GameEngine extends PApplet {
         Thread client = new Thread(Client.getInstance());
         client.start();
 
-        world.add(new Rectangle(this));
-        world.add(new DeathZone());
+        world.add(new PlatformStatic(this, 0, 500, 200, 100, 255, 0, 0));
+        world.add(new PlatformStatic(this, 250, 500, 200, 100, 0, 255, 0));
+        world.add(new PlatformStatic(this, 500, 500, 200, 100, 0, 0, 255));
+        world.add(new PlatformMoving(this, 600, 300, 100, 25, 132, 62, 11, 100, 100, false, true, 5, 5));
+        world.add(new PlatformMoving(this, 350, 200, 100, 25, 132, 62, 11, 100, 100, true, false, -5, 5));
+        world.add(new PlatformMoving(this, 150, 100, 100, 25, 132, 62, 11, 100, 50, true, true, 5, 1));
+
+        playerSpawn = new SpawnPoint(new PlayerCharacter(this));
+        world.add(playerSpawn);
+        playerSpawn.spawn();
+
+        world.add(new DeathZone(this, playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
+        world.add(new DeathZone(this, playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
     }
 
+    public int loopCount = 0;
     public void draw() {
+
+        background(93, 188, 210);
+
         //System.out.println(keysPressed.toString());
 
         // Update all objects
@@ -79,6 +94,15 @@ public class GameEngine extends PApplet {
                 // This block intentionally left empty
             }
         }
+
+        // Send all objects to the server
+//        for(_GameObject o : world) {
+//            o.resetApp(null);
+//            Client.sendOutput(o);
+//            o.resetApp(this);
+//        }
+
+        loopCount++;
     }
 
     public static void main(String[] args) {
