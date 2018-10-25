@@ -6,12 +6,15 @@ import objects.components.Displayable;
 import objects.objects.*;
 import processing.core.PApplet;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class GameEngine extends PAppletWrap {
 
-    SpawnPoint playerSpawn;
+    java.awt.Rectangle rr;
 
     public static int width = 700;
     public static int height = 600;
@@ -20,7 +23,7 @@ public class GameEngine extends PAppletWrap {
     private static GameEngine instance;
     private static ArrayList<_GameObject> world;
 
-    public GameEngine() {
+    private GameEngine() {
         world = new ArrayList<>();
     }
 
@@ -64,18 +67,31 @@ public class GameEngine extends PAppletWrap {
         world.add(new PlatformMoving(this, 350, 200, 100, 25, 132, 62, 11, 100, 100, true, false, -5, 5));
         world.add(new PlatformMoving(this, 150, 100, 100, 25, 132, 62, 11, 100, 50, true, true, 5, 1));
 
-        playerSpawn = new SpawnPoint(new PlayerCharacter(this));
+        SpawnPoint playerSpawn = new SpawnPoint(new PlayerCharacter(this));
         world.add(playerSpawn);
         playerSpawn.spawn();
 
         world.add(new DeathZone(this, playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
         world.add(new DeathZone(this, playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
+
+
+        Random rand = new Random();
+        int rX = rand.nextInt(25)+101;
+        int rY = rand.nextInt(25)+401;
+        rr = new Rectangle(rX, rY, 25, 25);
+
     }
 
     public int loopCount = 0;
     public void draw() {
-
         background(93, 188, 210);
+        Client.sendOutput(rr);
+        ConcurrentLinkedQueue<Object> networkInput= Client.getInput();
+        System.out.println(Client.getInput());
+        for(Object o : networkInput) {
+            Rectangle r = (Rectangle)o;
+            rect((float)r.getX(), (float)r.getY(), r.width, r.height);
+        }
 
         //System.out.println(keysPressed.toString());
 

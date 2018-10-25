@@ -1,7 +1,5 @@
 package networking;
 
-import objects.objects._GameObject;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,14 +8,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
-public class Client implements Runnable
-{
+public class Client implements Runnable {
 
     private static Client instance;
-    private static final ConcurrentLinkedQueue<_GameObject> inputCollection = new ConcurrentLinkedQueue<>();
-    private static final ConcurrentLinkedQueue<_GameObject> outputCollection = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<Object> inputCollection = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<Object> outputCollection = new ConcurrentLinkedQueue<>();
 
     private Client() {}
 
@@ -41,22 +37,18 @@ public class Client implements Runnable
             //noinspection InfiniteLoopStatement
             while (true) {
 
-//                // Write from OutputCollection to server
-//                synchronized (Client.outputCollection) {
-//                    dos.writeObject(Client.outputCollection);
-//                }
-//
-//                // Receive from InputCollection to server
-//                synchronized (Client.inputCollection) {
-//                    Client.inputCollection.add((_GameObject) dis.readObject());
-//                }
+                // Write from OutputCollection to server
+                synchronized (Client.outputCollection) {
+                    dos.reset();
+                    if(outputCollection.peek() != null) dos.writeObject(outputCollection.poll());
+                }
 
-                Integer i1 = rand.nextInt(1000) + 1;
-                dos.writeObject(i1);
-                //System.out.println("Sent: " + i1);
-                Integer i2 = (Integer) dis.readObject();
-                //System.out.println("Received: " + i2);
-                TimeUnit.SECONDS.sleep(5);
+                // Receive from InputCollection to server
+                synchronized (Client.inputCollection) {
+                    Object o = dis.readObject();
+                    Client.inputCollection.add(o);
+                    //System.out.println(Client.inputCollection);
+                }
             }
         } catch(ConnectException e) {
             System.out.println("Could not find server to connect to.");
@@ -73,16 +65,14 @@ public class Client implements Runnable
         }
     }
 
-    // Flush and return the input collection
-    public static ConcurrentLinkedQueue<_GameObject> getInput() {
-        ConcurrentLinkedQueue<_GameObject> temp = new ConcurrentLinkedQueue<>(inputCollection);
-        inputCollection.clear();
-        return temp;
+    // Add this object to the output collection
+    public static void sendOutput(Object o) {
+        outputCollection.remove(o);
+        outputCollection.offer(o);
     }
 
-    // Add this object to the output collection
-    public static void sendOutput(_GameObject o) {
-        outputCollection.add(o);
+    public static ConcurrentLinkedQueue<Object> getInput() {
+        return inputCollection;
     }
 
     public static void main(String[] args) {

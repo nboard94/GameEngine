@@ -3,43 +3,42 @@ package networking;
 import java.io.*;
 import java.net.Socket;
 
-class ServerWaiter implements Runnable
-{
+class ServerWaiter implements Runnable {
+
     private final Socket s;
     private final ObjectInputStream dis;
     private final ObjectOutputStream dos;
 
-    ServerWaiter(Socket s, ObjectInputStream dis, ObjectOutputStream dos)
-    {
+    ServerWaiter(Socket s, ObjectInputStream dis, ObjectOutputStream dos) {
+
         this.s = s;
         this.dis = dis;
         this.dos = dos;
     }
 
     @Override
-    public void run()
-    {
-        synchronized(Server.getClients())
-        {
+    public void run() {
+
+        synchronized(Server.getClients()) {
+
             Server.getClients().add(this);
             System.out.println("Client Connected: " + s);
             System.out.println("Current Amt of Clients: " + Server.getClients().size());
         }
 
-        while(true)
-        {
-            try {
-                Integer i1 = (Integer)dis.readObject();
-                dos.writeObject(i1 + 1);
-            } catch(Exception e) {
-                break;
-            }
-        }
+        Thread inputHandler = new Thread(ServerInput.getInstance());
+        inputHandler.start();
+
+        Thread outputHandler = new Thread(ServerOutput.getInstance());
+        outputHandler.start();
 
         try {
+            inputHandler.join();
+            outputHandler.join();
+
             dis.close();
             dos.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             return;
         }
 

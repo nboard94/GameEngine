@@ -1,92 +1,74 @@
 package networking;
 
-import objects.objects._GameObject;
 import processing.core.PApplet;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Server extends PApplet implements Runnable
-{
+public class Server extends PApplet implements Runnable {
+
+    private static final int port = 15150;
     private static final Server instance = new Server();
     private static final List<ServerWaiter> clients = Collections.synchronizedList(new ArrayList<>());
-    private static final int port = 15150;
+    private static final List<Object> collection = Collections.synchronizedList(new ArrayList<>());
+    private static ObjectOutputStream dos;
+    private static ObjectInputStream dis;
 
-    private static final ConcurrentLinkedQueue<_GameObject> inputCollection = new ConcurrentLinkedQueue<>();
-    private static final ConcurrentLinkedQueue<_GameObject> outputCollection = new ConcurrentLinkedQueue<>();
-
-    /*
-    *   singleton private constructor
-    */
+    // singleton constructor
     private Server() {}
 
-    /*
-     *   Run the server independent from the game.
-     */
-    public static void main(String[] args)
-    {
-        Server.getInstance().run();
-    }
-
-    /*
-     *   Creates the server socket to accept incoming requests.
-     *   Create threads for incoming clients.
-     */
+    // listen for incoming connections and spin off a new thread to handle each client
     @Override
-    public void run()
-    {
+    public void run() {
         try {
             ServerSocket ss = new ServerSocket(port);
-            //System.out.println("The server has started, accepting clients...");
 
             //noinspection InfiniteLoopStatement
             while(true) {
 
                 Socket s = ss.accept();
-
-                ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
-                ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
+                dos = new ObjectOutputStream(s.getOutputStream());
+                dis = new ObjectInputStream(s.getInputStream());
 
                 Thread t = new Thread(new ServerWaiter(s, dis, dos));
                 t.start();
-
             }
         } catch(BindException e) {
-            // Server on this port is presumed to already be running
-            //System.out.println("Another server is already running...");
+            System.out.println("Another server is already running...");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    /*
-    *   Returns the singleton instance of the server.
-    */
-    public static Server getInstance()
-    {
+    // returns singleton instance of server
+    public static Server getInstance() {
         return instance;
     }
 
-    /*
-     *   Returns the list of clients.
-     */
-    public static List<ServerWaiter> getClients()
-    {
+    // returns server's objectoutputstream
+    public static ObjectOutputStream getDOS() {
+        return dos;
+    }
+
+    // returns server's objectinputstream
+    public static ObjectInputStream getDIS() {
+        return dis;
+    }
+
+    // returns list of clients
+    public static List<ServerWaiter> getClients()  {
         return clients;
     }
 
-    // Flush and return the input collection
-    public static ConcurrentLinkedQueue<_GameObject> getInput() {
-        ConcurrentLinkedQueue<_GameObject> temp = new ConcurrentLinkedQueue<>(inputCollection);
-        inputCollection.clear();
-        return temp;
+    // return list of collected objects
+    static List<Object> getCollection() {
+        return collection;
     }
 
-    // Add this object to the output collection
-    public static void sendOutput(_GameObject o) {
-        outputCollection.add(o);
+    // main to run server individually
+    public static void main(String[] args) {
+        Server.getInstance().run();
     }
 }
 
