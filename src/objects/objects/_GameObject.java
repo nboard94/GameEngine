@@ -1,10 +1,11 @@
 package objects.objects;
 
+import objects.components.EventDriven;
 import processing.core.PApplet;
 
 import java.util.UUID;
 
-public abstract class _GameObject {
+public abstract class _GameObject implements EventDriven{
 
     private PApplet app;
     private UUID uuid = null;

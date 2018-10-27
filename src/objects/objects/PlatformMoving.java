@@ -1,14 +1,14 @@
 package objects.objects;
 
-import core.GameEngine;
-import core.PAppletWrap;
+import events.Event;
 import objects.components.Collidable;
 import objects.components.Displayable;
 import objects.components.Movable;
+import processing.core.PApplet;
 
 public class PlatformMoving extends _GameObject implements Collidable, Displayable, Movable {
 
-    private PAppletWrap app;
+    private PApplet app;
     public int x, y;
     public int w, h;
     private int r, b, g;
@@ -18,7 +18,7 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
     private int originX, originY;
     private int xRange, yRange;
 
-    public PlatformMoving(PAppletWrap p) {
+    public PlatformMoving(PApplet p) {
         app = p;
         x = 400;
         y = 400;
@@ -40,7 +40,7 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
         movesY = true;
     }
 
-    public PlatformMoving(PAppletWrap p, int x, int y, int w, int h, int r, int g, int b, int xRange,
+    public PlatformMoving(PApplet p, int x, int y, int w, int h, int r, int g, int b, int xRange,
                           int yRange, boolean movesX, boolean movesY, double speedX, double speedY) {
         this.app = p;
         this.x = x;
@@ -107,5 +107,10 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
     @Override
     public void update() {
         move();
+    }
+
+    @Override
+    public void onEvent(Event e) {
+
     }
 }

@@ -1,7 +1,7 @@
 package objects.objects;
 
 import core.GameEngine;
-import core.PAppletWrap;
+import events.Event;
 import objects.components.Displayable;
 
 public class SpawnPoint extends _GameObject  {
@@ -35,5 +35,10 @@ public class SpawnPoint extends _GameObject  {
 
     public _GameObject getObject() {
         return (_GameObject) this.toSpawn;
+    }
+
+    @Override
+    public void onEvent(Event e) {
+
     }
 }

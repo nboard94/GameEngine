@@ -1,7 +1,7 @@
 package objects.objects;
 
 import core.GameEngine;
-import core.PAppletWrap;
+import events.Event;
 import objects.components.*;
 import processing.core.PApplet;
 
@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class PlayerCharacter extends _GameObject implements Bounded, Collidable, Controllable, Gravitized, Displayable, Serializable {
 
-    private PAppletWrap app;
+    private PApplet app;
     private int x, y;
     private int w, h;
     private double speedX, speedY;
@@ -19,7 +19,7 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
     private boolean grounded = false;
     private int r, b, g;
 
-    public PlayerCharacter(PAppletWrap p) {
+    public PlayerCharacter(PApplet p) {
         app = p;
         x = 100;
         y = 300;
@@ -144,5 +144,18 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
         bound();
         control();
         move();
+    }
+
+    @Override
+    public void onEvent(Event e) {
+        if(e.getEventType().equals("TestEvent1")) {
+            String o1 = (String)e.getArgs().get("TestArg1");
+            String o2 = (String)e.getArgs().get("TestArg2");
+            System.out.println(o1 + " AND " + o2);
+        } else if(e.getEventType().equals("TestEvent2")) {
+            String o1 = (String)e.getArgs().get("TestArg1");
+            String o2 = (String)e.getArgs().get("TestArg2");
+            System.out.println(o2 + " AND " + o1);
+        }
     }
 }

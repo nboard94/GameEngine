@@ -1,17 +1,18 @@
 package objects.objects;
 
-import core.PAppletWrap;
+import events.Event;
 import objects.components.Collidable;
 import objects.components.Displayable;
+import processing.core.PApplet;
 
 public class PlatformStatic extends _GameObject implements Collidable, Displayable {
 
-    private PAppletWrap app;
+    private PApplet app;
     public int x, y;
     public int w, h;
     private int r, b, g;
 
-    public PlatformStatic(PAppletWrap p) {
+    public PlatformStatic(PApplet p) {
         app = p;
         x = 300;
         y = 300;
@@ -22,7 +23,7 @@ public class PlatformStatic extends _GameObject implements Collidable, Displayab
         b = 11;
     }
 
-    public PlatformStatic(PAppletWrap p, int x, int y, int w, int h, int r, int g, int b) {
+    public PlatformStatic(PApplet p, int x, int y, int w, int h, int r, int g, int b) {
         this.app = p;
         this.x = x;
         this.y = y;
@@ -67,5 +68,10 @@ public class PlatformStatic extends _GameObject implements Collidable, Displayab
     @Override
     public int getY() {
         return this.y;
+    }
+
+    @Override
+    public void onEvent(Event e) {
+
     }
 }

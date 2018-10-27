@@ -1,19 +1,19 @@
 package objects.objects;
 
-import core.GameEngine;
-import core.PAppletWrap;
+import events.Event;
 import objects.components.Collidable;
 import objects.components.Displayable;
+import processing.core.PApplet;
 
 import java.awt.Rectangle;
 
 public class DeathZone extends _GameObject implements  Displayable {
 
-    private PAppletWrap app;
+    private PApplet app;
     private SpawnPoint s;
     private int x, y, w, h, r, g, b;
 
-    public DeathZone(PAppletWrap p, SpawnPoint s, int x, int y, int w, int h, int r, int g, int b) {
+    public DeathZone(PApplet p, SpawnPoint s, int x, int y, int w, int h, int r, int g, int b) {
         this.app = p;
         this.s=s;
         this.x=x;
@@ -67,5 +67,9 @@ public class DeathZone extends _GameObject implements  Displayable {
     @Override
     public int getY() {
         return this.y;
+    }
+
+    @Override
+    public void onEvent(Event e) {
     }
 }

@@ -1,5 +1,6 @@
 package core;
 
+import events.EventManager;
 import networking.Client;
 import networking.Server;
 import objects.components.Displayable;
@@ -7,12 +8,13 @@ import objects.objects.*;
 import processing.core.PApplet;
 
 import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class GameEngine extends PAppletWrap {
+public class GameEngine extends PApplet implements Serializable {
 
     java.awt.Rectangle rr;
 
@@ -48,17 +50,12 @@ public class GameEngine extends PAppletWrap {
     // Spin-off initial systems and construct
     public void setup() {
 
-        // Start the interactive console
-        //Thread console = new Thread(Console.getInstance());
-        //console.start();
-
-        // Start a server if one isn't already available
-        Thread server = new Thread(Server.getInstance());
-        server.start();
-
-        // Start a client and connect to server
-        Thread client = new Thread(Client.getInstance());
-        client.start();
+        // Initialize subsystems
+        Timeline time = Timeline.getInstance();
+        (new Thread(EventManager.getInstance())).start();
+        (new Thread(Server.getInstance())).start();
+        (new Thread(Client.getInstance())).start();
+        (new Thread(Console.getInstance())).start();
 
         world.add(new PlatformStatic(this, 0, 500, 200, 100, 255, 0, 0));
         world.add(new PlatformStatic(this, 250, 500, 200, 100, 0, 255, 0));
