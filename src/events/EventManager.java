@@ -1,8 +1,6 @@
 package events;
 
-import core.GameEngine;
 import objects.components.EventDriven;
-import objects.objects.PlayerCharacter;
 
 import java.util.ArrayList;
 import java.util.HashMap;

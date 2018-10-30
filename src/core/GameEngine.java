@@ -174,5 +174,9 @@ public class GameEngine extends PApplet implements Serializable {
         if(keysPressed.get(32) != null && keysPressed.get(32)) {
             EventManager.raiseEvent("Jump");
         }
+
+        if(keysPressed.get(82) != null && keysPressed.get(82)) {
+            EventManager.raiseEvent("Replay");
+        }
     }
 }
