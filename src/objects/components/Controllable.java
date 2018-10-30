@@ -2,5 +2,9 @@ package objects.components;
 
 public interface Controllable extends Movable {
 
-    void control();
+    void moveRight();
+
+    void moveLeft();
+
+    void jump();
 }

@@ -1,5 +1,6 @@
 package core;
 
+import events.EventArg;
 import events.EventManager;
 import networking.Client;
 import networking.Server;
@@ -25,13 +26,17 @@ public class GameEngine extends PApplet implements Serializable {
     private static GameEngine instance;
     private static ArrayList<_GameObject> world;
 
-    private GameEngine() {
+    public GameEngine() {
         world = new ArrayList<>();
     }
 
     public static GameEngine getInstance() {
         if(instance==null) instance = new GameEngine();
         return instance;
+    }
+
+    public static String getGameEnginePath() {
+        return "core.GameEngine";
     }
 
     public static ArrayList<_GameObject> getWorld() {
@@ -53,7 +58,7 @@ public class GameEngine extends PApplet implements Serializable {
         // Initialize subsystems
         Timeline time = Timeline.getInstance();
         (new Thread(EventManager.getInstance())).start();
-        (new Thread(Server.getInstance())).start();
+        //(new Thread(Server.getInstance())).start();
         (new Thread(Client.getInstance())).start();
         (new Thread(Console.getInstance())).start();
 
@@ -81,10 +86,12 @@ public class GameEngine extends PApplet implements Serializable {
 
     public int loopCount = 0;
     public void draw() {
+
+        notifyOfInput();
         background(93, 188, 210);
         Client.sendOutput(rr);
         ConcurrentLinkedQueue<Object> networkInput= Client.getInput();
-        System.out.println(Client.getInput());
+        //System.out.println(Client.getInput());
         for(Object o : networkInput) {
             Rectangle r = (Rectangle)o;
             rect((float)r.getX(), (float)r.getY(), r.width, r.height);
@@ -119,7 +126,7 @@ public class GameEngine extends PApplet implements Serializable {
     }
 
     public static void main(String[] args) {
-        PApplet.main(GameEngine.getInstance().getClass());
+        PApplet.main("core.GameEngine");
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -152,5 +159,20 @@ public class GameEngine extends PApplet implements Serializable {
     // Get the static keysPressed field
     public static HashMap<Integer, Boolean> getPressedKeys() {
         return keysPressed;
+    }
+
+    public void notifyOfInput() {
+
+        if(keysPressed.get(this.RIGHT) != null && keysPressed.get(this.RIGHT)) {
+            EventManager.raiseEvent("MoveRight");
+        }
+
+        if(keysPressed.get(this.LEFT) != null && keysPressed.get(this.LEFT)) {
+            EventManager.raiseEvent("MoveLeft");
+        }
+
+        if(keysPressed.get(32) != null && keysPressed.get(32)) {
+            EventManager.raiseEvent("Jump");
+        }
     }
 }

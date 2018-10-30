@@ -1,8 +1,12 @@
 package core;
 
 /*
-*   Timeline singleton allows game to keep track of real time and local time.
-*   Provides functionality to pause, unpause, and reset time.
+*   The Timeline class allows game to keep track of real time and
+*   local time.  Provides functionality to pause, unpause, and
+*   reset time.
+*
+*   @author Nicholas Board
+*   @since 2018-10-27
 */
 public class Timeline{
 

@@ -88,18 +88,4 @@ public class EventManager implements Runnable{
             }
         }
     }
-
-    public static void main(String[] args) {
-        Thread t = new Thread(EventManager.getInstance());
-        t.start();
-
-        PlayerCharacter test = new PlayerCharacter(GameEngine.getInstance());
-        EventManager.registerEvent("TestEvent2", test);
-        EventManager.registerEvent("TestEvent1", test);
-
-        EventManager.raiseEvent("TestEvent1", new EventArg("TestArg1", "cat"),
-                new EventArg("TestArg2", "dog"));
-        EventManager.raiseEvent("TestEvent2", new EventArg("TestArg1", "cat"),
-                new EventArg("TestArg2", "dog"));
-    }
 }

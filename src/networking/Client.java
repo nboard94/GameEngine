@@ -60,8 +60,8 @@ public class Client implements Runnable {
 
         try {
             s.close();
-        } catch(IOException e) {
-            System.out.println("Could not close connection.");
+        } catch(IOException|NullPointerException e) {
+            //System.out.println("Could not close connection.");
         }
     }
 

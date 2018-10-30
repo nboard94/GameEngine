@@ -2,6 +2,7 @@ package objects.objects;
 
 import core.GameEngine;
 import events.Event;
+import events.EventManager;
 import objects.components.*;
 import processing.core.PApplet;
 
@@ -30,6 +31,10 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
         b = 250;
         speedX = 0;
         speedY = 0;
+
+        EventManager.registerEvent("MoveRight", this);
+        EventManager.registerEvent("MoveLeft", this);
+        EventManager.registerEvent("Jump", this);
     }
 
     @Override
@@ -128,34 +133,42 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
     }
 
     @Override
-    public void control() {
-        HashMap<Integer, Boolean> keys = GameEngine.getPressedKeys();
+    public void moveRight() {
+        speedX += 5;
+    }
 
-        if(grounded && keys.get(32) != null && keys.get(32)) {
+    @Override
+    public void moveLeft() {
+        speedX -= 5;
+    }
+
+    @Override
+    public void jump() {
+        if(grounded) {
             speedY -=10;
         }
-
-        if(keys.get(app.RIGHT) != null && keys.get(app.RIGHT)) speedX += 5;
-        if(keys.get(app.LEFT) != null && keys.get(app.LEFT)) speedX -= 5;
     }
+
+
 
     @Override
     public void update() {
         bound();
-        control();
         move();
     }
 
     @Override
     public void onEvent(Event e) {
-        if(e.getEventType().equals("TestEvent1")) {
-            String o1 = (String)e.getArgs().get("TestArg1");
-            String o2 = (String)e.getArgs().get("TestArg2");
-            System.out.println(o1 + " AND " + o2);
-        } else if(e.getEventType().equals("TestEvent2")) {
-            String o1 = (String)e.getArgs().get("TestArg1");
-            String o2 = (String)e.getArgs().get("TestArg2");
-            System.out.println(o2 + " AND " + o1);
+        switch (e.getEventType()) {
+            case "MoveRight":
+                moveRight();
+                break;
+            case "MoveLeft":
+                moveLeft();
+                break;
+            case "Jump":
+                jump();
+                break;
         }
     }
 }
