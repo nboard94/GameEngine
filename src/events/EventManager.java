@@ -15,6 +15,9 @@ import java.util.concurrent.PriorityBlockingQueue;
 *   @author Nicholas Board
 *   @since 2018-10-27
 */
+
+//make sure to synrchornize
+//might wanna use local timeline for timestamps
 public class EventManager implements Runnable{
 
     private static final EventManager instance = new EventManager();                                    // Singleton instance of EventManager.
@@ -47,6 +50,7 @@ public class EventManager implements Runnable{
             eventRegistrants.put(eventType, new ArrayList<>());
         }
         eventRegistrants.get(eventType).add(o);
+        eventRegistrants.get(eventType).add(ReplayManager.getInstance());
     }
 
     /*

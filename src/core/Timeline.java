@@ -10,6 +10,12 @@ package core;
 */
 public class Timeline{
 
+    // make interface?  one class does everything in real time, another for local time
+    // create timeline that uses system time, be able to tic size (seconds vs ms) etc
+    // anchoring is tarting from real time, and whenever asking current time relative to local times (divide by tic)
+    // another constructor can take in timeline to set time start
+    // w/ pausing keep trying of time elapsed total and add that to equations
+    // keep track of history of paise, startpase and accumated pause
     private static Timeline instance = new Timeline();          // singleton instance of Timeline
     private static long realTimeStart;                          // timestamp for the start of real time
     private static long localTimeStart;                         // timestamp for the start of local time
