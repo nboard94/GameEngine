@@ -1,12 +1,12 @@
 package core;
 
-import events.EventArg;
 import events.EventManager;
 import networking.Client;
-import networking.Server;
 import objects.components.Displayable;
 import objects.objects.*;
 import processing.core.PApplet;
+import time.LocalTime;
+import time.Timeline;
 
 import java.awt.Rectangle;
 import java.io.Serializable;
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 public class GameEngine extends PApplet implements Serializable {
 
@@ -23,24 +24,32 @@ public class GameEngine extends PApplet implements Serializable {
     public static int height = 600;
     public static double gravity = 0.6;
 
-    private static GameEngine instance;
-    private static ArrayList<_GameObject> world;
+    private static GameEngine instance = new GameEngine();
+    private static LocalTime time;
+    private static ArrayList<_GameObject> space;
 
     public GameEngine() {
-        world = new ArrayList<>();
+        time = new LocalTime(TimeUnit.MILLISECONDS);
+        space = new ArrayList<>();
     }
 
     public static GameEngine getInstance() {
-        if(instance==null) instance = new GameEngine();
         return instance;
     }
 
-    public static String getGameEnginePath() {
-        return "core.GameEngine";
+    public static LocalTime getTime() {
+        return GameEngine.time;
     }
 
-    public static ArrayList<_GameObject> getWorld() {
-        return world;
+    public static void setTime(LocalTime time) {
+        GameEngine.time = time;
+    }
+
+    public static ArrayList<_GameObject> getSpace() {
+        return space;
+    }
+    public static void setSpace(ArrayList<_GameObject> space) {
+        GameEngine.space = space;
     }
 
     public static double getGravity() {
@@ -56,32 +65,25 @@ public class GameEngine extends PApplet implements Serializable {
     public void setup() {
 
         // Initialize subsystems
-        Timeline time = Timeline.getInstance();
+        (new Thread(ReplayManager.getInstance())).start();
         (new Thread(EventManager.getInstance())).start();
         //(new Thread(Server.getInstance())).start();
         (new Thread(Client.getInstance())).start();
         (new Thread(Console.getInstance())).start();
 
-        world.add(new PlatformStatic(this, 0, 500, 200, 100, 255, 0, 0));
-        world.add(new PlatformStatic(this, 250, 500, 200, 100, 0, 255, 0));
-        world.add(new PlatformStatic(this, 500, 500, 200, 100, 0, 0, 255));
-        world.add(new PlatformMoving(this, 600, 300, 100, 25, 132, 62, 11, 100, 100, false, true, 5, 5));
-        world.add(new PlatformMoving(this, 350, 200, 100, 25, 132, 62, 11, 100, 100, true, false, -5, 5));
-        world.add(new PlatformMoving(this, 150, 100, 100, 25, 132, 62, 11, 100, 50, true, true, 5, 1));
+        space.add(new PlatformStatic(this, 0, 500, 200, 100, 255, 0, 0));
+        space.add(new PlatformStatic(this, 250, 500, 200, 100, 0, 255, 0));
+        space.add(new PlatformStatic(this, 500, 500, 200, 100, 0, 0, 255));
+        space.add(new PlatformMoving(this, 600, 300, 100, 25, 132, 62, 11, 100, 100, false, true, 5, 5));
+        space.add(new PlatformMoving(this, 350, 200, 100, 25, 132, 62, 11, 100, 100, true, false, -5, 5));
+        space.add(new PlatformMoving(this, 150, 100, 100, 25, 132, 62, 11, 100, 50, true, true, 5, 1));
 
         SpawnPoint playerSpawn = new SpawnPoint(new PlayerCharacter(this));
-        world.add(playerSpawn);
+        space.add(playerSpawn);
         playerSpawn.spawn();
 
-        world.add(new DeathZone(this, playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
-        world.add(new DeathZone(this, playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
-
-
-        Random rand = new Random();
-        int rX = rand.nextInt(25)+101;
-        int rY = rand.nextInt(25)+401;
-        rr = new Rectangle(rX, rY, 25, 25);
-
+        space.add(new DeathZone(this, playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
+        space.add(new DeathZone(this, playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
     }
 
     public int loopCount = 0;
@@ -89,7 +91,6 @@ public class GameEngine extends PApplet implements Serializable {
 
         notifyOfInput();
         background(93, 188, 210);
-        Client.sendOutput(rr);
         ConcurrentLinkedQueue<Object> networkInput= Client.getInput();
         //System.out.println(Client.getInput());
         for(Object o : networkInput) {
@@ -100,12 +101,12 @@ public class GameEngine extends PApplet implements Serializable {
         //System.out.println(keysPressed.toString());
 
         // Update all objects
-        for(_GameObject o : world) {
+        for(_GameObject o : space) {
             o.update();
         }
 
         // Display all displayable objects
-        for(_GameObject o : world) {
+        for(_GameObject o : space) {
 
             try {
                 Displayable d = (Displayable) o;
@@ -115,8 +116,13 @@ public class GameEngine extends PApplet implements Serializable {
             }
         }
 
+        if(ReplayManager.isRecording()) {
+            fill(255, 0 ,0);
+            ellipse(width-25, 25, 25, 25);
+        }
+
         // Send all objects to the server
-//        for(_GameObject o : world) {
+//        for(_GameObject o : space) {
 //            o.resetApp(null);
 //            Client.sendOutput(o);
 //            o.resetApp(this);
@@ -138,6 +144,7 @@ public class GameEngine extends PApplet implements Serializable {
 
     // Updates keysPressed values as true depending on button pressed
     public void keyPressed() {
+        //System.out.println(keyCode);
         if(!keysPressed.containsKey(keyCode)) {
             keysPressed.put(keyCode, true);
         }
@@ -148,11 +155,16 @@ public class GameEngine extends PApplet implements Serializable {
 
     // Updates keysPressed values as false depending on button released
     public void keyReleased() {
+        //System.out.println(keyCode);
         if(!keysPressed.containsKey(keyCode)) {
             keysPressed.put(keyCode, false);
         }
         else if(keysPressed.containsKey(keyCode)) {
             keysPressed.replace(keyCode, false);
+        }
+
+        if(keyCode==80) {
+            EventManager.raiseEvent("Replay");
         }
     }
 
@@ -163,16 +175,34 @@ public class GameEngine extends PApplet implements Serializable {
 
     public void notifyOfInput() {
 
+        // 'right'
         if(keysPressed.get(this.RIGHT) != null && keysPressed.get(this.RIGHT)) {
             EventManager.raiseEvent("MoveRight");
         }
 
+        // 'left'
         if(keysPressed.get(this.LEFT) != null && keysPressed.get(this.LEFT)) {
             EventManager.raiseEvent("MoveLeft");
         }
 
+        // 'space'
         if(keysPressed.get(32) != null && keysPressed.get(32)) {
             EventManager.raiseEvent("Jump");
+        }
+
+        // 'p'
+//        if(keysPressed.get(80) != null && keysPressed.get(80)) {
+//            EventManager.raiseEvent("Replay");
+//        }
+
+        // 'r'
+        if(keysPressed.get(82) != null && keysPressed.get(82)) {
+            EventManager.raiseEvent("RecordStart");
+        }
+
+        // 't'
+        if(keysPressed.get(84) != null && keysPressed.get(84)) {
+            EventManager.raiseEvent("RecordStop");
         }
     }
 }

@@ -1,9 +1,10 @@
 package events;
 
-import core.Timeline;
+import time.RealTime;
 
+import javax.swing.text.html.HTMLDocument;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.*;
 
 /*
 *   The Event class represents the message that is created, handled
@@ -29,8 +30,17 @@ public class Event implements Comparable<Event>, Serializable {
     *   @param arguments A variable amount of EventArgs that will be used during event handling.
     */
     public Event(String eventType, EventArg... arguments) {
+        timeStamp = RealTime.getRealTime();
         this.eventType = eventType;
-        timeStamp = Timeline.getRealTime();
+
+        for(EventArg e : arguments) {
+            args.put(e.getArgName(), e.arg());
+        }
+    }
+
+    public Event(long timeStamp, String eventType, EventArg... arguments) {
+        this.timeStamp = timeStamp;
+        this.eventType = eventType;
 
         for(EventArg e : arguments) {
             args.put(e.getArgName(), e.arg());
@@ -57,7 +67,7 @@ public class Event implements Comparable<Event>, Serializable {
     *   Returns the real time timestamp for this Event to determine priority.
     *   @return long The real time timestamp.
     */
-    private long getTimeStamp() {
+    public long getTimeStamp() {
         return timeStamp;
     }
 
@@ -69,5 +79,18 @@ public class Event implements Comparable<Event>, Serializable {
     @Override
     public int compareTo(Event e) {
         return Long.compare(this.getTimeStamp(), e.getTimeStamp());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder eventString = new StringBuilder(timeStamp + " " + eventType);
+        //StringBuilder eventString = new StringBuilder(eventType);
+
+        for (Object o : args.entrySet()) {
+            Map.Entry pair = (Map.Entry) o;
+            eventString.append(" ").append(pair.getKey()).append(":").append(pair.getValue());
+        }
+
+        return eventString.toString();
     }
 }

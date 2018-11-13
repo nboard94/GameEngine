@@ -8,7 +8,6 @@ import processing.core.PApplet;
 
 import java.awt.Rectangle;
 import java.io.Serializable;
-import java.util.HashMap;
 
 public class PlayerCharacter extends _GameObject implements Bounded, Collidable, Controllable, Gravitized, Displayable, Serializable {
 
@@ -52,7 +51,7 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
 
         Rectangle r1 = new Rectangle(x, y, w, h);
         Rectangle r2;
-        for( _GameObject o : GameEngine.getWorld()) {
+        for( _GameObject o : GameEngine.getSpace()) {
             try {
                 if(o != this) {
                     Collidable c = (Collidable) o;

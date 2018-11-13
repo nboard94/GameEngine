@@ -22,6 +22,7 @@ public class EventManager implements Runnable{
     private static final EventManager instance = new EventManager();                                    // Singleton instance of EventManager.
     private static final HashMap<String, ArrayList<EventDriven>> eventRegistrants = new HashMap<>();    // Each Event string acts as a key to get an ArrayList of registered EventDriven Objects.
     private static final PriorityBlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>();       // The queue of Events awaiting handling, prioritized by age in real time.
+    private static final ArrayList<EventDriven> wildRegistrants = new ArrayList<>();                    // List of EventDriven Objects that register to all events.
     private static boolean stop = false;                                                                // The EventManager is stopped when this value is set to true.
 
     /*
@@ -41,14 +42,28 @@ public class EventManager implements Runnable{
     *   This method registers any given object with some type of event.
     *   Creates an ArrayList when a new event type is passed in, and
     *   objects registered to that event are stored in the associated list.
+    *   If a registrant wants to be wild, it is added to the list of wild
+    *   registrants which is then inserted into all existing registrant lists.
+    *   It is also added each time a new registrant list is created.
     *   @param eventType The type of event this object wants to register for.
     *   @param o The object that wants to register for the type of event.
     */
     public static void registerEvent(String eventType, EventDriven o) {
-        if(!eventRegistrants.containsKey(eventType)) {
-            eventRegistrants.put(eventType, new ArrayList<>());
+        if(eventType.equals("WILD")) {
+            wildRegistrants.add(o);
+            for(ArrayList<EventDriven> l : eventRegistrants.values()) {
+                l.add(o);
+            }
         }
-        eventRegistrants.get(eventType).add(o);
+
+        else if(!eventRegistrants.containsKey(eventType)) {
+            eventRegistrants.put(eventType, new ArrayList<>());
+            for(EventDriven e : wildRegistrants) {
+                eventRegistrants.get(eventType).add(e);
+            }
+        }
+
+        if(!eventType.equals("WILD")) eventRegistrants.get(eventType).add(o);
     }
 
     /*
@@ -61,6 +76,10 @@ public class EventManager implements Runnable{
         eventQueue.put(new Event(eventType, arguments));
     }
 
+
+    public static void raiseEvent(Event e) {
+        eventQueue.put(e);
+    }
     /*
     *   When called, the EventManager thread is stopped.
     */

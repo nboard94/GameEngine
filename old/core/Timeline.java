@@ -1,7 +1,7 @@
 package core;
 
 /*
-*   The Timeline class allows game to keep track of real time and
+*   The LocalTime class allows game to keep track of real time and
 *   local time.  Provides functionality to pause, unpause, and
 *   reset time.
 *
@@ -10,14 +10,14 @@ package core;
 */
 public class Timeline{
 
-    private static Timeline instance = new Timeline();          // singleton instance of Timeline
+    private static Timeline instance = new Timeline();          // singleton instance of LocalTime
     private static long realTimeStart;                          // timestamp for the start of real time
     private static long localTimeStart;                         // timestamp for the start of local time
     private static long localRecordedTime;                      // total recorded local time
     private static boolean paused;                              // is local time paused or not
 
     /*
-    *  Private constructor of Timeline for singleton.
+    *  Private constructor of LocalTime for singleton.
     *  Sets realTimeStart to the current millisecond timestamp and makes sure
     *  that the local time starts at the same time.
     */
@@ -29,7 +29,7 @@ public class Timeline{
     }
 
     /*
-    *   Returns the singleton instance of Timeline.
+    *   Returns the singleton instance of LocalTime.
     */
     public static Timeline getInstance() {
         return instance;
@@ -103,7 +103,7 @@ public class Timeline{
     }
 
     /*
-    *   Returns if the Timeline is paused or not.
+    *   Returns if the LocalTime is paused or not.
     */
     public static boolean isPaused() {
         return paused;
@@ -119,7 +119,7 @@ public class Timeline{
     }
 
     /*
-    *   Reset local and real time by assigning instance to a new Timeline.
+    *   Reset local and real time by assigning instance to a new LocalTime.
     */
     public static void resetAllTime() {
         instance = new Timeline();

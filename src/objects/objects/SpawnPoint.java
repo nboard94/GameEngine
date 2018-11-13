@@ -30,7 +30,7 @@ public class SpawnPoint extends _GameObject  {
     }
 
     private void worldCheck() {
-        if(!GameEngine.getWorld().contains(toSpawn)) GameEngine.getWorld().add((_GameObject) toSpawn);
+        if(!GameEngine.getSpace().contains(toSpawn)) GameEngine.getSpace().add((_GameObject) toSpawn);
     }
 
     public _GameObject getObject() {
