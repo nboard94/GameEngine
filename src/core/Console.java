@@ -8,7 +8,6 @@ import java.util.Scanner;
 public class Console implements Runnable{
 
     private static Console instance;
-    private static final GameEngine game = GameEngine.getInstance();
     private static final Server server = Server.getInstance();
     private static final Client client = Client.getInstance();
 

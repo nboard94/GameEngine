@@ -23,6 +23,12 @@ public class SpawnPoint extends _GameObject  {
         worldCheck();
     }
 
+    public SpawnPoint(SpawnPoint other) {
+        this.x = other.x;
+        this.y = other.y;
+        this.toSpawn = other.toSpawn;
+    }
+
     public void spawn() {
         toSpawn.setX(this.x);
         toSpawn.setY(this.y);

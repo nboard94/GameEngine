@@ -19,7 +19,7 @@ public class EventArg {
     *   @param argName The know what type of argument this is.
     *   @param arg The argument Object itself.
     */
-    EventArg(String argName, Object arg) {
+    public EventArg(String argName, Object arg) {
         this.argName = argName;
         this.arg = arg;
     }

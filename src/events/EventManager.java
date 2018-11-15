@@ -1,8 +1,6 @@
 package events;
 
-import core.GameEngine;
 import objects.components.EventDriven;
-import objects.objects.PlayerCharacter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,19 +49,12 @@ public class EventManager implements Runnable{
     public static void registerEvent(String eventType, EventDriven o) {
         if(eventType.equals("WILD")) {
             wildRegistrants.add(o);
-            for(ArrayList<EventDriven> l : eventRegistrants.values()) {
-                l.add(o);
+        } else {
+            if(!eventRegistrants.containsKey(eventType)) {
+                eventRegistrants.put(eventType, new ArrayList<>());
             }
+            eventRegistrants.get(eventType).add(o);
         }
-
-        else if(!eventRegistrants.containsKey(eventType)) {
-            eventRegistrants.put(eventType, new ArrayList<>());
-            for(EventDriven e : wildRegistrants) {
-                eventRegistrants.get(eventType).add(e);
-            }
-        }
-
-        if(!eventType.equals("WILD")) eventRegistrants.get(eventType).add(o);
     }
 
     /*
@@ -99,7 +90,15 @@ public class EventManager implements Runnable{
         while(!stop) {
             try {
                 e = eventQueue.take();
-                for( EventDriven o : eventRegistrants.get(e.getEventType())) {
+                if(e.getEventType().equals("Jump")) {
+                    int i = 0;
+                }
+                if(eventRegistrants.containsKey(e.getEventType())){
+                    for( EventDriven o : eventRegistrants.get(e.getEventType())) {
+                        o.onEvent(e);
+                    }
+                }
+                for( EventDriven o : wildRegistrants) {
                     o.onEvent(e);
                 }
             } catch (InterruptedException e1) {

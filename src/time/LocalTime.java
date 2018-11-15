@@ -46,7 +46,8 @@ public class LocalTime implements Timeline{
     public LocalTime(TimeUnit ticSize, Timeline anchor) {
         this.anchor = anchor;
         this.ticSize = ticSize;
-        this.timeStart = anchor.getTime();
+        this.timeGenesis = anchor.getTime();
+        this.timeStart = timeGenesis;
         this.timeTracked = 0;
         this.pauseStart = 0;
         this.paused = false;
@@ -64,7 +65,7 @@ public class LocalTime implements Timeline{
     *
     */
     public boolean pause() {
-        long pauseTime = anchor.getTime();
+        long pauseTime = getRelativeTime();
         if(!paused) {
             paused = true;
             timeTracked += (pauseTime - timeStart);
@@ -75,7 +76,7 @@ public class LocalTime implements Timeline{
     }
 
     public boolean play() {
-        long playTime = anchor.getTime();
+        long playTime = getRelativeTime();
         if(paused) {
             paused = false;
             timeStart = playTime;
@@ -85,10 +86,19 @@ public class LocalTime implements Timeline{
     }
 
     public void reset() {
-        this.timeStart = timeGenesis;
+        pause();
+        this.timeGenesis = anchor.getTime();
+        this.timeStart = 0;
         this.timeTracked = 0;
         this.pauseStart = 0;
-        this.paused = false;
+    }
+
+    public long getRelativeTime() {
+        return anchor.getTime() - timeGenesis;
+    }
+
+    public void addTrackedTime(long newTime) {
+        this.timeTracked += newTime;
     }
 
     public boolean isPaused() {
@@ -100,14 +110,14 @@ public class LocalTime implements Timeline{
         if(paused)
             time = timeTracked;
         else
-            time = timeTracked + (anchor.getTime() - timeStart);
+            time = timeTracked + (getRelativeTime() - timeStart);
         return ticSize.convert(time, ticSize);
     }
 
     public long getPausedTime() {
         long time;
         if(paused)
-            time = anchor.getTime() - pauseStart;
+            time = getRelativeTime() - pauseStart;
         else
             time = 0;
         return ticSize.convert(time, ticSize);

@@ -1,26 +1,32 @@
 package objects.objects;
 
 import core.GameEngine;
+import core.ReplayManager;
 import events.Event;
+import events.EventArg;
 import events.EventManager;
 import objects.components.*;
 import processing.core.PApplet;
 
 import java.awt.Rectangle;
 import java.io.Serializable;
+import java.util.HashMap;
 
 public class PlayerCharacter extends _GameObject implements Bounded, Collidable, Controllable, Gravitized, Displayable, Serializable {
 
-    private PApplet app;
+    private PApplet app = _GameObject.getApp();
     private int x, y;
+    public int xReplay, yReplay;
+    public int xBackup, yBackup;
     private int w, h;
     private double speedX, speedY;
+    private double speedReplayX, speedReplayY;
+    private double speedBackupX, speedBackupY;
     private double speedYold = -1;
     private boolean grounded = false;
     private int r, b, g;
 
-    public PlayerCharacter(PApplet p) {
-        app = p;
+    public PlayerCharacter() {
         x = 100;
         y = 300;
         w = 50;
@@ -34,6 +40,26 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
         EventManager.registerEvent("MoveRight", this);
         EventManager.registerEvent("MoveLeft", this);
         EventManager.registerEvent("Jump", this);
+    }
+
+    public PlayerCharacter(PlayerCharacter other) {
+        this.app = other.app;
+        this.x = other.x;
+        this.y = other.y;
+        this.w = other.w;
+        this.h = other.h;
+        this.speedX = other.speedX;
+        this.speedY = other.speedY;
+        this.speedYold = other.speedYold;
+        this.grounded = other.grounded;
+        this.r = other.r;
+        this.b = other.b;
+        this.g = other.g;
+
+        EventManager.registerEvent("MoveRight", this);
+        EventManager.registerEvent("MoveLeft", this);
+        EventManager.registerEvent("Jump", this);
+        EventManager.registerEvent("PlayerCollision", this);
     }
 
     @Override
@@ -57,7 +83,15 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
                     Collidable c = (Collidable) o;
                     int[] rdata = c.getRectangleData();
                     r2 = new Rectangle(rdata[0], rdata[1], rdata[2], rdata[3]);
-                    if(r1.intersects(r2)) return true;
+                    if(r1.intersects(r2)) {
+                        try {
+                            PlayerCharacter p2 = (PlayerCharacter) c;
+                            EventManager.raiseEvent("PlayerCollision", new EventArg("p2", p2.getUUID()));
+                        } catch (ClassCastException e1) {
+                            // This block intentionally left empty
+                        }
+                        return true;
+                    }
                 }
             } catch(ClassCastException e) {
                 // This block intentionally left empty
@@ -98,6 +132,18 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
     }
 
     @Override
+    public void replayPositionSave() {
+        this.xReplay = this.x;
+        this.yReplay = this.y;
+    }
+
+    @Override
+    public void replayPositionRestore() {
+        this.x = this.xReplay;
+        this.y = this.yReplay;
+    }
+
+    @Override
     public int getX() {
         return this.x;
     }
@@ -105,6 +151,70 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
     @Override
     public int getY() {
         return this.y;
+    }
+
+    public int getW() {
+        return this.w;
+    }
+
+    public int getH() {
+        return this.h;
+    }
+
+    public int getR() {
+        return this.r;
+    }
+
+    public int getG() {
+        return this.g;
+    }
+
+    public int getB() {
+        return this.b;
+    }
+
+    public double getSpeedX() {
+        return this.speedX;
+    }
+
+    public double getSpeedY() {
+        return this.speedY;
+    }
+
+    @Override
+    public void savePosition() {
+        this.xBackup = x;
+        this.yBackup = y;
+    }
+
+    @Override
+    public void restorePosition() {
+        this.x = xBackup;
+        this.y = yBackup;
+    }
+
+    @Override
+    public void replaySpeedSave() {
+        speedReplayX = speedX;
+        speedReplayY = speedY;
+    }
+
+    @Override
+    public void replaySpeedRestore() {
+        speedX = speedReplayX;
+        speedY = speedReplayY;
+    }
+
+    @Override
+    public void saveSpeed() {
+        speedBackupX = speedX;
+        speedBackupY = speedY;
+    }
+
+    @Override
+    public void restoreSpeed() {
+        speedX = speedBackupX;
+        speedY = speedBackupY;
     }
 
     @Override
@@ -148,7 +258,9 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
         }
     }
 
-
+    public void playerCollision(String p2UUID) {
+        
+    }
 
     @Override
     public void update() {
@@ -158,6 +270,8 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
 
     @Override
     public void onEvent(Event e) {
+        HashMap<String, Object> args = e.getArgs();
+
         switch (e.getEventType()) {
             case "MoveRight":
                 moveRight();
@@ -168,6 +282,15 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
             case "Jump":
                 jump();
                 break;
+            case "PlayerCollision":
+                String p2 = (String) args.get("p2");
+                playerCollision(p2);
+                break;
         }
+    }
+
+    @Override
+    public PlayerCharacter clone() {
+        return new PlayerCharacter(this);
     }
 }

@@ -63,6 +63,10 @@ public class Event implements Comparable<Event>, Serializable {
         return args;
     }
 
+    public void addArg(EventArg e) {
+        args.put(e.getArgName(), e.arg());
+    }
+
     /*
     *   Returns the real time timestamp for this Event to determine priority.
     *   @return long The real time timestamp.
@@ -84,13 +88,13 @@ public class Event implements Comparable<Event>, Serializable {
     @Override
     public String toString() {
         StringBuilder eventString = new StringBuilder(timeStamp + " " + eventType);
-        //StringBuilder eventString = new StringBuilder(eventType);
 
         for (Object o : args.entrySet()) {
             Map.Entry pair = (Map.Entry) o;
             eventString.append(" ").append(pair.getKey()).append(":").append(pair.getValue());
         }
 
+        //System.out.println(eventString.toString());
         return eventString.toString();
     }
 }

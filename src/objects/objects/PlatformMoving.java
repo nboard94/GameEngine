@@ -1,6 +1,8 @@
 package objects.objects;
 
+import core.ReplayManager;
 import events.Event;
+import events.EventManager;
 import objects.components.Collidable;
 import objects.components.Displayable;
 import objects.components.Movable;
@@ -8,41 +10,22 @@ import processing.core.PApplet;
 
 public class PlatformMoving extends _GameObject implements Collidable, Displayable, Movable {
 
-    private PApplet app;
+    private PApplet app = _GameObject.getApp();
     public int x, y;
+    public int xReplay, yReplay;
+    public int xBackup, yBackup;
     public int w, h;
     private int r, b, g;
     private double speedX, speedY;
+    private double speedReplayX, speedReplayY;
+    private double speedBackupX, speedBackupY;
     private boolean movesX, movesY;
 
     private int originX, originY;
     private int xRange, yRange;
 
-    public PlatformMoving(PApplet p) {
-        app = p;
-        x = 400;
-        y = 400;
-        w = 100;
-        h = 25;
-        r = 132;
-        g = 62;
-        b = 11;
-
-        originX = x;
-        originY = y;
-
-        xRange = 100;
-        yRange = 50;
-
-        speedX = 5;
-        speedY = 5;
-        movesX = false;
-        movesY = true;
-    }
-
-    public PlatformMoving(PApplet p, int x, int y, int w, int h, int r, int g, int b, int xRange,
+    public PlatformMoving(int x, int y, int w, int h, int r, int g, int b, int xRange,
                           int yRange, boolean movesX, boolean movesY, double speedX, double speedY) {
-        this.app = p;
         this.x = x;
         this.y = y;
         this.w = w;
@@ -60,7 +43,41 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
         originY = y;
     }
 
+    public PlatformMoving(PlatformMoving other) {
+        this.app = other.app;
+        this.x = other.x;
+        this.y = other.y;
+        this.w = other.w;
+        this.h = other.h;
+        this.r = other.r;
+        this.b = other.b;
+        this.g = other.g;
+        this.speedX = other.speedX;
+        this.speedY = other.speedY;
+        this.movesX = other.movesX;
+        this.movesY = other.movesY;
+        this.originX = other.originX;
+        this.originY = other.originY;
+        this.xRange = other.xRange;
+        this.yRange = other.yRange;
+    }
+
+
+
+
+
     @Override
+    public void replayPositionSave() {
+        this.xReplay = this.x;
+        this.yReplay = this.y;
+    }
+
+    @Override
+    public void replayPositionRestore() {
+        this.x = this.xReplay;
+        this.y = this.yReplay;
+    }
+
     public boolean detectCollision() {
         return false;
     }
@@ -87,6 +104,42 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
     }
 
     @Override
+    public void savePosition() {
+        this.xBackup = x;
+        this.yBackup = y;
+    }
+
+    @Override
+    public void restorePosition() {
+        this.x = xBackup;
+        this.y = yBackup;
+    }
+
+    @Override
+    public void replaySpeedSave() {
+        speedReplayX = speedX;
+        speedReplayY = speedY;
+    }
+
+    @Override
+    public void replaySpeedRestore() {
+        speedX = speedReplayX;
+        speedY = speedReplayY;
+    }
+
+    @Override
+    public void saveSpeed() {
+        speedBackupX = speedX;
+        speedBackupY = speedY;
+    }
+
+    @Override
+    public void restoreSpeed() {
+        speedX = speedBackupX;
+        speedY = speedBackupY;
+    }
+
+    @Override
     public int getX() {
         return this.x;
     }
@@ -98,6 +151,7 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
 
     @Override
     public void move() {
+
         if(x <= (originX-xRange) || x >= (originX+xRange)) speedX *= -1;
         if(y <= (originY-yRange) || y >= (originY+yRange)) speedY *= -1;
         if(movesX) x += speedX;

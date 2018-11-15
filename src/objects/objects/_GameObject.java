@@ -8,16 +8,19 @@ import java.util.UUID;
 
 public abstract class _GameObject implements EventDriven, Serializable{
 
-    private PApplet app;
-    private UUID uuid = null;
+    private static PApplet app;
+    private UUID uuid = UUID.randomUUID();
 
     public UUID getUUID() {
-        if(uuid == null) uuid = UUID.randomUUID();
         return this.uuid;
     }
 
-    public void resetApp(PApplet p) {
-        this.app = p;
+    public static PApplet getApp() {
+        return app;
+    }
+
+    public static void setApp(PApplet p) {
+        app = p;
     }
 
     public _GameObject deepClone() {

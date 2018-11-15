@@ -1,6 +1,7 @@
 package objects.objects;
 
 import events.Event;
+import events.EventManager;
 import objects.components.Collidable;
 import objects.components.Displayable;
 import processing.core.PApplet;
@@ -9,12 +10,11 @@ import java.awt.Rectangle;
 
 public class DeathZone extends _GameObject implements  Displayable {
 
-    private PApplet app;
+    private PApplet app = _GameObject.getApp();
     private SpawnPoint s;
     private int x, y, w, h, r, g, b;
 
-    public DeathZone(PApplet p, SpawnPoint s, int x, int y, int w, int h, int r, int g, int b) {
-        this.app = p;
+    public DeathZone(SpawnPoint s, int x, int y, int w, int h, int r, int g, int b) {
         this.s=s;
         this.x=x;
         this.y=y;
@@ -23,6 +23,18 @@ public class DeathZone extends _GameObject implements  Displayable {
         this.r=r;
         this.g=g;
         this.b=b;
+    }
+
+    public DeathZone(DeathZone other) {
+        this.app = other.app;
+        this.s = other.s;
+        this.x = other.x;
+        this.y = other.y;
+        this.w = other.w;
+        this.h = other.h;
+        this.r = other.r;
+        this.g = other.g;
+        this.b = other.b;
     }
 
     public boolean detectCollision() {
