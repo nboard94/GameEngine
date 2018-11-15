@@ -239,7 +239,7 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
         // '3'
         if(keysPressed.get(51) != null && keysPressed.get(51)) {
-            EventManager.raiseEvent("Replay", new EventArg("ReplaySpeed", 3));
+            EventManager.raiseEvent("Replay", new EventArg("ReplaySpeed", 10));
         }
 
         // 'p'

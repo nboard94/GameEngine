@@ -2,7 +2,10 @@ package objects.objects;
 
 import core.GameEngine;
 import events.Event;
+import events.EventManager;
 import objects.components.Displayable;
+
+import java.util.HashMap;
 
 public class SpawnPoint extends _GameObject  {
 
@@ -14,6 +17,7 @@ public class SpawnPoint extends _GameObject  {
         this.y = y;
         this.toSpawn = toSpawn;
         worldCheck();
+        EventManager.registerEvent("PlayerSpawn", this);
     }
 
     public SpawnPoint(Displayable toSpawn) {
@@ -21,6 +25,7 @@ public class SpawnPoint extends _GameObject  {
         this.y = toSpawn.getY();
         this.toSpawn = toSpawn;
         worldCheck();
+        EventManager.registerEvent("PlayerSpawn", this);
     }
 
     public SpawnPoint(SpawnPoint other) {
@@ -30,6 +35,12 @@ public class SpawnPoint extends _GameObject  {
     }
 
     public void spawn() {
+        toSpawn.setX(this.x);
+        toSpawn.setY(this.y);
+        toSpawn.display();
+    }
+
+    public void spawn(String id) {
         toSpawn.setX(this.x);
         toSpawn.setY(this.y);
         toSpawn.display();
@@ -45,6 +56,13 @@ public class SpawnPoint extends _GameObject  {
 
     @Override
     public void onEvent(Event e) {
+        HashMap<String, Object> args = e.getArgs();
 
+        switch (e.getEventType()) {
+            case "PlayerSpawn":
+                String p2 = (String) args.get("player");
+                spawn(p2);
+                break;
+        }
     }
 }

@@ -1,12 +1,14 @@
 package objects.objects;
 
 import events.Event;
+import events.EventArg;
 import events.EventManager;
 import objects.components.Collidable;
 import objects.components.Displayable;
 import processing.core.PApplet;
 
 import java.awt.Rectangle;
+import java.util.HashMap;
 
 public class DeathZone extends _GameObject implements  Displayable {
 
@@ -23,6 +25,7 @@ public class DeathZone extends _GameObject implements  Displayable {
         this.r=r;
         this.g=g;
         this.b=b;
+        EventManager.registerEvent("PlayerDeath", this);
     }
 
     public DeathZone(DeathZone other) {
@@ -35,15 +38,18 @@ public class DeathZone extends _GameObject implements  Displayable {
         this.r = other.r;
         this.g = other.g;
         this.b = other.b;
+        EventManager.registerEvent("PlayerDeath", this);
     }
 
-    public boolean detectCollision() {
+    public void detectCollision() {
         Rectangle r1 = new java.awt.Rectangle(x, y, w, h);
 
         Collidable c = (Collidable) s.getObject();
         int[] rdata = c.getRectangleData();
         Rectangle r2 = new Rectangle(rdata[0], rdata[1], rdata[2], rdata[3]);
-        return r1.intersects(r2);
+        if( r1.intersects(r2)) {
+            EventManager.raiseEvent("PlayerDeath", new EventArg("player", ((_GameObject) c).getUUID().toString()));
+        }
     }
 
     public int[] getRectangleData() {
@@ -52,7 +58,15 @@ public class DeathZone extends _GameObject implements  Displayable {
 
     @Override
     public void update() {
-        if(detectCollision()) s.spawn();
+
+        detectCollision();
+        //s.spawn();
+    }
+
+    public void spawn(String id) {
+
+        EventManager.raiseEvent("PlayerSpawn", new EventArg("player", id));
+        //s.spawn();
     }
 
     @Override
@@ -83,5 +97,13 @@ public class DeathZone extends _GameObject implements  Displayable {
 
     @Override
     public void onEvent(Event e) {
+        HashMap<String, Object> args = e.getArgs();
+
+        switch (e.getEventType()) {
+            case "PlayerDeath":
+                String p2 = (String) args.get("player");
+                spawn(p2);
+                break;
+        }
     }
 }

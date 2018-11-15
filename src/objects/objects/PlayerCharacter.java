@@ -259,7 +259,7 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
     }
 
     public void playerCollision(String p2UUID) {
-        
+
     }
 
     @Override
