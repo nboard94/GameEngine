@@ -7,6 +7,7 @@ import events.EventArg;
 import events.EventManager;
 import objects.components.*;
 import processing.core.PApplet;
+import scripting.ScriptManager_JS;
 
 import java.awt.Rectangle;
 import java.io.Serializable;
@@ -258,6 +259,14 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
         }
     }
 
+    public boolean getGrounded() {
+        return grounded;
+    }
+
+    public void setSpeedY(double speedY) {
+        this.speedY = speedY;
+    }
+
     public void playerCollision(String p2UUID) {
 
     }
@@ -280,7 +289,12 @@ public class PlayerCharacter extends _GameObject implements Bounded, Collidable,
                 moveLeft();
                 break;
             case "Jump":
-                jump();
+                //jump();
+                synchronized(ScriptManager_JS.getInstance()) {
+                    ScriptManager_JS.loadScript("src\\scripting\\scripts\\jump.js");
+                    ScriptManager_JS.bindArgument("player", this);
+                    ScriptManager_JS.executeScript();
+                }
                 break;
             case "PlayerCollision":
                 String p2 = (String) args.get("p2");

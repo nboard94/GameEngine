@@ -90,9 +90,6 @@ public class EventManager implements Runnable{
         while(!stop) {
             try {
                 e = eventQueue.take();
-                if(e.getEventType().equals("Jump")) {
-                    int i = 0;
-                }
                 if(eventRegistrants.containsKey(e.getEventType())){
                     for( EventDriven o : eventRegistrants.get(e.getEventType())) {
                         o.onEvent(e);

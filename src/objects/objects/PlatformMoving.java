@@ -7,6 +7,8 @@ import objects.components.Collidable;
 import objects.components.Displayable;
 import objects.components.Movable;
 import processing.core.PApplet;
+import scripting.ScriptManager_JS;
+import sun.font.Script;
 
 public class PlatformMoving extends _GameObject implements Collidable, Displayable, Movable {
 
@@ -158,9 +160,70 @@ public class PlatformMoving extends _GameObject implements Collidable, Displayab
         if(movesY) y += speedY;
     }
 
+    public int getOriginX() {
+        return originX;
+    }
+
+    public void setOriginX(int originX) {
+        this.originX = originX;
+    }
+
+    public int getOriginY() {
+        return originY;
+    }
+
+    public void setOriginY(int originY) {
+        this.originY = originY;
+    }
+
+    public int getXrange() {
+        return xRange;
+    }
+
+    public void setXrange(int xRange) {
+        this.xRange = xRange;
+    }
+
+    public int getYrange() {
+        return yRange;
+    }
+
+    public void setYrange(int yRange) {
+        this.yRange = yRange;
+    }
+
+    public double getSpeedX() {
+        return speedX;
+    }
+
+    public void setSpeedX(double speedX) {
+        this.speedX = speedX;
+    }
+
+    public double getSpeedY() {
+        return speedY;
+    }
+
+    public void setSpeedY(double speedY) {
+        this.speedY = speedY;
+    }
+
+    public boolean getMovesX() {
+        return movesX;
+    }
+
+    public boolean getMovesY() {
+        return movesY;
+    }
+
     @Override
     public void update() {
-        move();
+        //move();
+        synchronized(ScriptManager_JS.getInstance()) {
+            ScriptManager_JS.loadScript("src\\scripting\\scripts\\move_platform.js");
+            ScriptManager_JS.bindArgument("platform", this);
+            ScriptManager_JS.executeScript();
+        }
     }
 
     @Override

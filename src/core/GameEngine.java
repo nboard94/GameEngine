@@ -10,6 +10,7 @@ import objects.components.Movable;
 import objects.objects.*;
 import processing.core.PApplet;
 import processing.core.PGraphics;
+import scripting.ScriptManager_JS;
 import time.LocalTime;
 
 import java.awt.Rectangle;
@@ -106,6 +107,8 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
         space.add(new DeathZone(playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
         space.add(new DeathZone(playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
+
+
     }
 
     public void pauseGame() {
@@ -115,6 +118,7 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
     public int loopCount = 0;
     public void draw() {
+        //ScriptManager_JS.loadScript("src\\scripting\\scripts\\hello_world.js");
 
         notifyOfInput();
         background(93, 188, 210);
