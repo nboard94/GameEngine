@@ -3,66 +3,41 @@ package core;
 import events.Event;
 import events.EventArg;
 import events.EventManager;
-import networking.Client;
 import objects.components.Displayable;
 import objects.components.EventDriven;
 import objects.components.Movable;
 import objects.objects.*;
 import processing.core.PApplet;
-import processing.core.PGraphics;
-import scripting.ScriptManager_JS;
 import time.LocalTime;
 
-import java.awt.Rectangle;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class GameEngine extends PApplet implements EventDriven, Serializable {
 
-    public static int width = 700;
-    public static int height = 600;
-    public static double gravity = 0.6;
-
+    private double previous, lag, current, elapsed;
+    public static int width = 500;
+    public static int height = 500;
     private static GameEngine instance = new GameEngine();
     private static LocalTime time;
-    private static ArrayList<_GameObject> space;
+    private static List<_GameObject> space;
+    int score = 0;
 
     public GameEngine() {
         time = new LocalTime(TimeUnit.MILLISECONDS);
-        space = new ArrayList<>();
+        space = Collections.synchronizedList(new ArrayList<>());
     }
 
     public static GameEngine getInstance() {
         return instance;
     }
 
-    public static LocalTime getTime() {
-        return GameEngine.time;
-    }
-
-    public static void setTime(LocalTime time) {
-        GameEngine.time = time;
-    }
-
-    public static ArrayList<_GameObject> getSpace() {
+    public static List<_GameObject> getSpace() {
         return space;
-    }
-    public static void setSpace(ArrayList<_GameObject> space) {
-        GameEngine.space = space;
-    }
-
-    public static _GameObject getByUUID(String id) {
-        for(_GameObject g : GameEngine.getSpace()) {
-            if (g.getUUID().toString().equals(id) ) return g;
-        }
-        return null;
-    }
-
-    public static double getGravity() {
-        return gravity;
     }
 
     // Tweak Processing settings
@@ -74,78 +49,61 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
     public void setup() {
 
         EventManager.registerEvent("PausePlayGame", this);
-
-        ArrayList<_GameObject> positions = new ArrayList<>();
+        EventManager.registerEvent("EatFood", this);
         for( Object o : GameEngine.getSpace() ) {
-
             Movable m = (Movable) o;
         }
 
         // Initialize subsystems
         (new Thread(ReplayManager.getInstance())).start();
         (new Thread(EventManager.getInstance())).start();
-        //(new Thread(Server.getInstance())).start();
-        (new Thread(Client.getInstance())).start();
-        (new Thread(Console.getInstance())).start();
-
         _GameObject.setApp(this);
 
-        System.out.println("This: " + this.toString());
-        System.out.println("Instance: " + GameEngine.getInstance().toString());
-        this.createPrimaryGraphics();
+        space.add(new SnakeHead());
+        space.add(new Food(20, 20));
 
-        space.add(new PlatformStatic(0, 500, 200, 100, 255, 0, 0));
-        space.add(new PlatformStatic(250, 500, 200, 100, 0, 255, 0));
-        space.add(new PlatformStatic(500, 500, 200, 100, 0, 0, 255));
-        space.add(new PlatformMoving(600, 300, 100, 25, 132, 62, 11, 100, 100, false, true, 5, 5));
-        space.add(new PlatformMoving(350, 200, 100, 25, 132, 62, 11, 100, 100, true, false, -5, 5));
-        space.add(new PlatformMoving(150, 100, 100, 25, 132, 62, 11, 100, 50, true, true, 5, 1));
-
-        SpawnPoint playerSpawn = new SpawnPoint(new PlayerCharacter());
-        space.add(playerSpawn);
-        playerSpawn.spawn();
-
-        space.add(new DeathZone(playerSpawn, 200, 575, 50, 100, 237, 181 ,0));
-        space.add(new DeathZone(playerSpawn, 450, 575, 50, 100, 237, 181 ,0));
-
-
+        previous = time.getTime();
+        lag = 0.0;
     }
 
-    public void pauseGame() {
+    void pauseGame() {
         if(GameEngine.time.pause()) noLoop();
         else if(GameEngine.time.play()) loop();
     }
 
-    public int loopCount = 0;
     public void draw() {
-        //ScriptManager_JS.loadScript("src\\scripting\\scripts\\hello_world.js");
+
+        // used to control throttling
+        current = time.getTime();
+        elapsed = current - previous;
+        previous = current;
+        lag += elapsed;
 
         notifyOfInput();
-        background(93, 188, 210);
-        ConcurrentLinkedQueue<Object> networkInput= Client.getInput();
-        //System.out.println(Client.getInput());
-        for(Object o : networkInput) {
-            Rectangle r = (Rectangle)o;
-            rect((float)r.getX(), (float)r.getY(), r.width, r.height);
-        }
 
-        //System.out.println(keysPressed.toString());
-
-        // Update all objects
-        for(_GameObject o : space) {
-            o.update();
-        }
-
-        // Display all displayable objects
-        for(_GameObject o : space) {
-
-            try {
-                Displayable d = (Displayable) o;
-                d.display();
-            } catch( ClassCastException e) {
-                // This block intentionally left empty
+        while(lag >= 50) {
+            // Update all objects
+            for(_GameObject o : space) {
+                o.update();
             }
+
+            background(93, 188, 210);
+            textSize(32);
+            text("Score: " + score, 10, 32);
+            // Display all displayable objects
+            for(_GameObject o : space) {
+                try {
+                    Displayable d = (Displayable) o;
+                    d.display();
+                } catch( ClassCastException e) {
+                    // This block intentionally left empty
+                }
+            }
+
+            lag -= 50;
         }
+
+
 
         if(ReplayManager.isRecording()) {
             fill(255, 0 ,0);
@@ -155,15 +113,6 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             fill(0, 255,0);
             triangle(width-30, 10, width-30, 30, width-10, 20);
         }
-
-        // Send all objects to the server
-//        for(_GameObject o : space) {
-//            o.setApp(null);
-//            Client.sendOutput(o);
-//            o.setApp(this);
-//        }
-
-        loopCount++;
     }
 
     public static void main(String[] args) {
@@ -209,21 +158,26 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         }
     }
 
-    // Get the static keysPressed field
-    public static HashMap<Integer, Boolean> getPressedKeys() {
-        return keysPressed;
-    }
+    private void notifyOfInput() {
 
-    public void notifyOfInput() {
+        // 'up'
+        if(keysPressed.get(this.UP) != null && keysPressed.get(this.UP)) {
+            EventManager.raiseEvent("MoveUp");
+        }
 
-        // 'right'
-        if(keysPressed.get(this.RIGHT) != null && keysPressed.get(this.RIGHT)) {
-            EventManager.raiseEvent("MoveRight");
+        // 'down'
+        if(keysPressed.get(this.DOWN) != null && keysPressed.get(this.DOWN)) {
+            EventManager.raiseEvent("MoveDown");
         }
 
         // 'left'
         if(keysPressed.get(this.LEFT) != null && keysPressed.get(this.LEFT)) {
             EventManager.raiseEvent("MoveLeft");
+        }
+
+        // 'right'
+        if(keysPressed.get(this.RIGHT) != null && keysPressed.get(this.RIGHT)) {
+            EventManager.raiseEvent("MoveRight");
         }
 
         // 'space'
@@ -267,6 +221,9 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         switch (e.getEventType()) {
             case "PausePlayGame":
                 pauseGame();
+                break;
+            case "EatFood":
+                score++;
                 break;
         }
     }
