@@ -2,6 +2,8 @@ package objects.objects;
 
 import events.Event;
 import events.EventManager;
+import networking.Client;
+import networking.ServerOutput;
 import objects.components.Collidable;
 import objects.components.Displayable;
 import processing.core.PApplet;
@@ -82,6 +84,7 @@ public class Food extends _GameObject implements Collidable, Displayable {
 
             case "EatFood":
                 randomSpawn();
+                Client.sendEvent(e);
                 break;
         }
     }

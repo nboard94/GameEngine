@@ -1,20 +1,21 @@
 package networking;
 
 import events.Event;
+import events.EventManager;
 
 import java.io.ObjectInputStream;
 
-public class ServerInput implements Runnable {
+public class ClientInput implements Runnable {
 
-    private static ServerInput instance;
+    private static ClientInput instance;
     private static ObjectInputStream dis;
 
-    private ServerInput() {
-        dis=Server.getDIS();
+    private ClientInput() {
+        dis=Client.getDIS();
     }
 
-    public static ServerInput getInstance() {
-        if(instance==null) instance = new ServerInput();
+    public static ClientInput getInstance() {
+        if(instance==null) instance = new ClientInput();
         return instance;
     }
 
@@ -25,8 +26,7 @@ public class ServerInput implements Runnable {
         while(true) {
             try {
                 e = (Event) dis.readObject();
-                System.out.println("HERE" + e.toString());
-                Server.getEventQueue().add(e);
+                EventManager.raiseEvent(e);
             } catch (Exception e1) {
                 //e1.printStackTrace();
             }

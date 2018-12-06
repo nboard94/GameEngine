@@ -1,17 +1,19 @@
 package networking;
 
+import events.Event;
 import processing.core.PApplet;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class Server extends PApplet implements Runnable {
 
     private static final int port = 15150;
     private static final Server instance = new Server();
     private static final List<ServerWaiter> clients = Collections.synchronizedList(new ArrayList<>());
-    private static final List<Object> collection = Collections.synchronizedList(new ArrayList<>());
+    private static final PriorityBlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>();
     private static ObjectOutputStream dos;
     private static ObjectInputStream dis;
 
@@ -46,24 +48,23 @@ public class Server extends PApplet implements Runnable {
         return instance;
     }
 
-    // returns server's objectoutputstream
-    public static ObjectOutputStream getDOS() {
+    // returns server's dos
+    static ObjectOutputStream getDOS() {
         return dos;
     }
 
-    // returns server's objectinputstream
-    public static ObjectInputStream getDIS() {
+    // returns server's dis
+    static ObjectInputStream getDIS() {
         return dis;
+    }
+
+    static PriorityBlockingQueue<Event> getEventQueue() {
+        return eventQueue;
     }
 
     // returns list of clients
     public static List<ServerWaiter> getClients()  {
         return clients;
-    }
-
-    // return list of collected objects
-    static List<Object> getCollection() {
-        return collection;
     }
 
     // main to run server individually

@@ -5,17 +5,17 @@ import events.Event;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-public class ServerOutput implements Runnable {
+public class ClientOutput implements Runnable {
 
-    private static ServerOutput instance;
+    private static ClientOutput instance;
     private static ObjectOutputStream dos;
 
-    private ServerOutput() {
-        dos = Server.getDOS();
+    private ClientOutput() {
+        dos = Client.getDOS();
     }
 
-    public static ServerOutput getInstance() {
-        if(instance==null) instance = new ServerOutput();
+    public static ClientOutput getInstance() {
+        if(instance==null) instance = new ClientOutput();
         return instance;
     }
 
@@ -25,12 +25,11 @@ public class ServerOutput implements Runnable {
         Event e;
         while(true) {
             try {
-                e = Server.getEventQueue().take();
+                e = Client.getEventQueue().take();
                 dos.writeObject(e);
             } catch (InterruptedException | IOException e1) {
-                //e1.printStackTrace();
+               // e1.printStackTrace();
             }
         }
     }
-
 }

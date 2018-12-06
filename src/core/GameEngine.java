@@ -3,6 +3,8 @@ package core;
 import events.Event;
 import events.EventArg;
 import events.EventManager;
+import networking.Client;
+import networking.Server;
 import objects.components.Displayable;
 import objects.components.EventDriven;
 import objects.components.Movable;
@@ -57,6 +59,8 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         // Initialize subsystems
         (new Thread(ReplayManager.getInstance())).start();
         (new Thread(EventManager.getInstance())).start();
+        (new Thread(Server.getInstance())).start();
+        (new Thread(Client.getInstance())).start();
         _GameObject.setApp(this);
 
         space.add(new SnakeHead());
@@ -182,7 +186,7 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
         // 'space'
         if(keysPressed.get(32) != null && keysPressed.get(32)) {
-            EventManager.raiseEvent("Jump");
+            EventManager.raiseEvent("EatFood");
         }
 
         // '1'

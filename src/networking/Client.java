@@ -1,19 +1,23 @@
 package networking;
 
+import events.Event;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Random;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class Client implements Runnable {
 
+    private static final int port = 15150;
     private static Client instance;
-    private static final ConcurrentLinkedQueue<Object> inputCollection = new ConcurrentLinkedQueue<>();
-    private static final ConcurrentLinkedQueue<Object> outputCollection = new ConcurrentLinkedQueue<>();
+    private static final PriorityBlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>();
+    private static ObjectOutputStream dos;
+    private static ObjectInputStream dis;
+
 
     private Client() {}
 
@@ -28,28 +32,16 @@ public class Client implements Runnable {
         Socket s = null;
         try {
             InetAddress host = InetAddress.getByName("localhost");
-            s = new Socket(host, 15150);
+            s = new Socket(host, port);
 
-            ObjectInputStream dis = new ObjectInputStream(s.getInputStream());
-            ObjectOutputStream dos = new ObjectOutputStream(s.getOutputStream());
-            Random rand = new Random();
+            dis = new ObjectInputStream(s.getInputStream());
+            dos = new ObjectOutputStream(s.getOutputStream());
 
-            //noinspection InfiniteLoopStatement
-            while (true) {
+            Thread input = new Thread(ClientInput.getInstance());
+            input.start();
+            Thread output = new Thread(ClientOutput.getInstance());
+            output.start();
 
-                // Write from OutputCollection to server
-                synchronized (Client.outputCollection) {
-                    dos.reset();
-                    if(outputCollection.peek() != null) dos.writeObject(outputCollection.poll());
-                }
-
-                // Receive from InputCollection to server
-                synchronized (Client.inputCollection) {
-                    Object o = dis.readObject();
-                    Client.inputCollection.add(o);
-                    //System.out.println(Client.inputCollection);
-                }
-            }
         } catch(ConnectException e) {
             System.out.println("Could not find server to connect to.");
 
@@ -59,20 +51,29 @@ public class Client implements Runnable {
         }
 
         try {
+            assert s != null;
             s.close();
         } catch(IOException|NullPointerException e) {
-            //System.out.println("Could not close connection.");
+            System.out.println("Could not close connection.");
         }
     }
 
-    // Add this object to the output collection
-    public static void sendOutput(Object o) {
-        outputCollection.remove(o);
-        outputCollection.offer(o);
+    // returns server's dos
+    static ObjectOutputStream getDOS() {
+        return dos;
     }
 
-    public static ConcurrentLinkedQueue<Object> getInput() {
-        return inputCollection;
+    // returns server's dis
+    static ObjectInputStream getDIS() {
+        return dis;
+    }
+
+    static PriorityBlockingQueue<Event> getEventQueue() {
+        return eventQueue;
+    }
+
+    public static void sendEvent(Event e) {
+        eventQueue.add(e);
     }
 
     public static void main(String[] args) {
