@@ -10,6 +10,7 @@ import objects.components.EventDriven;
 import objects.components.Movable;
 import objects.objects.*;
 import processing.core.PApplet;
+import scripting.ScriptManager_JS;
 import time.LocalTime;
 
 import java.io.Serializable;
@@ -27,7 +28,8 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
     private static GameEngine instance = new GameEngine();
     private static LocalTime time;
     private static List<_GameObject> space;
-    int score = 0;
+    public static int score = 0;
+    public static int hiscore = 0;
 
     public GameEngine() {
         time = new LocalTime(TimeUnit.MILLISECONDS);
@@ -52,6 +54,7 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
         EventManager.registerEvent("PausePlayGame", this);
         EventManager.registerEvent("EatFood", this);
+        EventManager.registerEvent("NewGame", this);
         for( Object o : GameEngine.getSpace() ) {
             Movable m = (Movable) o;
         }
@@ -75,6 +78,19 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         else if(GameEngine.time.play()) loop();
     }
 
+    public void newGame() {
+        if(score > hiscore) hiscore = score;
+        score = 0;
+        for(_GameObject g : space) {
+            if(g.getClass() == SnakeHead.class) {
+                ScriptManager_JS.loadScript("src\\scripting\\scripts\\reset_object.js");
+                ScriptManager_JS.bindArgument("o", g);
+                ScriptManager_JS.executeScript();
+            }
+        }
+    }
+
+
     public void draw() {
 
         // used to control throttling
@@ -92,8 +108,11 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             }
 
             background(93, 188, 210);
-            textSize(32);
+            fill(0, 0, 0);
+            textSize(26);
             text("Score: " + score, 10, 32);
+            text("Hi-Score: " + hiscore, 250, 32);
+            if(SnakeHead.dead) text("Game Over: Press Enter to Restart", 10, 65);
             // Display all displayable objects
             for(_GameObject o : space) {
                 try {
@@ -184,6 +203,11 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             EventManager.raiseEvent("MoveRight");
         }
 
+        // 'enter'
+        if(keysPressed.get(10) != null && keysPressed.get(10)) {
+            EventManager.raiseEvent("NewGame");
+        }
+
         // 'space'
         if(keysPressed.get(32) != null && keysPressed.get(32)) {
             EventManager.raiseEvent("EatFood");
@@ -228,6 +252,10 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
                 break;
             case "EatFood":
                 score++;
+                break;
+            case "NewGame":
+                newGame();
+                System.out.println("HERE:");
                 break;
         }
     }

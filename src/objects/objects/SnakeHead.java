@@ -19,8 +19,8 @@ public class SnakeHead extends _GameObject implements Bounded, Collidable, Contr
     private int r, g, b;
     private int speedX, speedY;
     private int length;
-    private LinkedList<SnakeBodyPart> body = new LinkedList<>();
-    private boolean dead = false;
+    private LinkedList<SnakeBodyPart> body;
+    public static boolean dead = false;
 
 
     public SnakeHead() {
@@ -40,26 +40,43 @@ public class SnakeHead extends _GameObject implements Bounded, Collidable, Contr
         this.speedX = 0;
         this.speedY = 0;
         this.length = 2;
+        body = new LinkedList<>();
     }
+
+    public void reset() {
+        this.x = 250;
+        dead = false;
+        this.y = 250;
+        this.w = 20;
+        this.h = 20;
+        this.r = 0;
+        this.g = 255;
+        this.b = 0;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.length = 2;
+        body = new LinkedList<>();
+    }
+
 
     @Override
     public void bound() {
-        if(x<=(w/2)) {
-            x = (w/2);
-            kill();
+        if(x<=(w)) {
+            x = (w);
+            //kill();
         }
-        else if (x>=(GameEngine.width-w/2)) {
-            x = (GameEngine.width-w/2);
-            kill();
+        else if (x>=(GameEngine.width-w)) {
+            x = (GameEngine.width-w);
+            //kill();
         }
 
         if(y<=0) {
             y = (0);
-            kill();
+            //kill();
         }
         else if (y>=(GameEngine.height-h)) {
             y = (GameEngine.height-(h));
-            kill();
+            //kill();
         }
     }
 
@@ -100,8 +117,11 @@ public class SnakeHead extends _GameObject implements Bounded, Collidable, Contr
                 int[] rdata = sbp.getRectangleData();
                 r2 = new Rectangle(rdata[0], rdata[1], rdata[2], rdata[3]);
                 if(r1.intersects(r2)) {
-                    EventManager.raiseEvent("BodyCollision");
-                    System.out.println(body.indexOf(sbp));
+
+                    if(body.size() - body.indexOf(sbp) > 3) {
+                        EventManager.raiseEvent("BodyCollision");
+                        System.out.println(body.indexOf(sbp));
+                    }
                     return true;
                 }
 
@@ -118,33 +138,33 @@ public class SnakeHead extends _GameObject implements Bounded, Collidable, Contr
 
     @Override
     public void moveRight() {
-        if( speedX!=-10 ) {
-            speedX = 10;
+        if( speedX!=-20 ) {
+            speedX = 20;
             speedY = 0;
         }
     }
 
     @Override
     public void moveLeft() {
-        if(speedX!=10) {
-            speedX = -10;
+        if(speedX!=20) {
+            speedX = -20;
             speedY = 0;
         }
     }
 
     @Override
     public void moveDown() {
-        if(speedY!=-10){
+        if(speedY!=-20){
             speedX = 0;
-            speedY = 10;
+            speedY = 20;
         }
     }
 
     @Override
     public void moveUp() {
-        if(speedY!=10) {
+        if(speedY!=20) {
             speedX = 0;
-            speedY = -10;
+            speedY = -20;
         }
     }
 
@@ -268,7 +288,7 @@ public class SnakeHead extends _GameObject implements Bounded, Collidable, Contr
                 increaseLength();
                 break;
             case "BodyCollision":
-                //stop();
+                kill();
                 break;
         }
     }
