@@ -13,10 +13,7 @@ import processing.core.PApplet;
 import time.LocalTime;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class GameEngine extends PApplet implements EventDriven, Serializable {
@@ -27,7 +24,12 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
     private static GameEngine instance = new GameEngine();
     private static LocalTime time;
     private static List<_GameObject> space;
-    int score = 0;
+    public static int score = 0;
+    public static int hiscore = 0;
+    boolean dead = false;
+    public static int iterations = 0;
+    public static double wins = 1;
+    public static int remaining = 24;
 
     public GameEngine() {
         time = new LocalTime(TimeUnit.MILLISECONDS);
@@ -51,7 +53,8 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
     public void setup() {
 
         EventManager.registerEvent("PausePlayGame", this);
-        EventManager.registerEvent("EatFood", this);
+        EventManager.registerEvent("InvaderWin", this);
+        EventManager.registerEvent("NewGame", this);
         for( Object o : GameEngine.getSpace() ) {
             Movable m = (Movable) o;
         }
@@ -59,12 +62,12 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         // Initialize subsystems
         (new Thread(ReplayManager.getInstance())).start();
         (new Thread(EventManager.getInstance())).start();
-        (new Thread(Server.getInstance())).start();
-        (new Thread(Client.getInstance())).start();
+        //(new Thread(Server.getInstance())).start();
+        //(new Thread(Client.getInstance())).start();
         _GameObject.setApp(this);
 
-        space.add(new SnakeHead());
-        space.add(new Food(20, 20));
+        space.add(new Ship());
+        spawnFleet();
 
         previous = time.getTime();
         lag = 0.0;
@@ -75,7 +78,59 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         else if(GameEngine.time.play()) loop();
     }
 
+    void spawnFleet() {
+        space.add(new Invader(50, 50));
+        space.add(new Invader(100, 50));
+        space.add(new Invader(150, 50));
+        space.add(new Invader(200, 50));
+        space.add(new Invader(250, 50));
+        space.add(new Invader(300, 50));
+        space.add(new Invader(350, 50));
+        space.add(new Invader(400, 50));
+        space.add(new Invader(70, 80));
+        space.add(new Invader(120, 80));
+        space.add(new Invader(170, 80));
+        space.add(new Invader(220, 80));
+        space.add(new Invader(270, 80));
+        space.add(new Invader(320, 80));
+        space.add(new Invader(370, 80));
+        space.add(new Invader(420, 80));
+        space.add(new Invader(50, 110));
+        space.add(new Invader(100, 110));
+        space.add(new Invader(150, 110));
+        space.add(new Invader(200, 110));
+        space.add(new Invader(250, 110));
+        space.add(new Invader(300, 110));
+        space.add(new Invader(350, 110));
+        space.add(new Invader(400, 110));
+    }
+
+    void newGame() {
+        if(score > hiscore) hiscore = score;
+        score = 0;
+        wins=0;
+        dead = false;
+        for(_GameObject g : space) {
+            if(g.getClass() == Ship.class) {
+                ((Ship)g).resetShip();
+            } else if(g.getClass() == Invader.class) {
+                ((Invader)g).resetInvader();
+            }
+        }
+        loop();
+    }
+
     public void draw() {
+
+        if(remaining==0) {
+            wins++;
+            for(_GameObject g : space) {
+                if(g.getClass() == Invader.class) {
+                    ((Invader)g).resetInvader();
+                }
+            }
+            remaining = 24;
+        }
 
         // used to control throttling
         current = time.getTime();
@@ -87,19 +142,26 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
 
         while(lag >= 50) {
             // Update all objects
-            for(_GameObject o : space) {
-                o.update();
+            synchronized (space) {
+
+                for(_GameObject o : space) {
+                    o.update();
+                }
+
             }
 
             background(93, 188, 210);
-            textSize(32);
+            fill(0, 0, 0);
+            textSize(26);
             text("Score: " + score, 10, 32);
+            text("Hi-Score: " + hiscore, 250, 32);
+            if(dead) text("Game Over: Press Enter to Restart", 10, 65);
             // Display all displayable objects
-            for(_GameObject o : space) {
+            for (_GameObject o : space) {
                 try {
                     Displayable d = (Displayable) o;
                     d.display();
-                } catch( ClassCastException e) {
+                } catch (ClassCastException e) {
                     // This block intentionally left empty
                 }
             }
@@ -117,6 +179,8 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             fill(0, 255,0);
             triangle(width-30, 10, width-30, 30, width-10, 20);
         }
+
+        iterations++;
     }
 
     public static void main(String[] args) {
@@ -184,9 +248,14 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             EventManager.raiseEvent("MoveRight");
         }
 
+        // 'enter'
+        if(keysPressed.get(10) != null && keysPressed.get(10)) {
+            EventManager.raiseEvent("NewGame");
+        }
+
         // 'space'
         if(keysPressed.get(32) != null && keysPressed.get(32)) {
-            EventManager.raiseEvent("EatFood");
+            EventManager.raiseEvent("Shoot");
         }
 
         // '1'
@@ -226,8 +295,18 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             case "PausePlayGame":
                 pauseGame();
                 break;
-            case "EatFood":
-                score++;
+            case "InvaderWin":
+                dead = true;
+                for(_GameObject g : space) {
+                    if(g.getClass() == Ship.class) {
+                        ((Ship)g).setSpeed(0);
+                    } else if(g.getClass() == Invader.class) {
+                        ((Invader)g).setSpeed(0);
+                    }
+                }
+                break;
+            case "NewGame":
+                if(dead)newGame();
                 break;
         }
     }
