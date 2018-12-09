@@ -36,7 +36,7 @@ public class Ship extends _GameObject implements Bounded, Collidable, Controllab
         this.speedY = 0;
     }
 
-    public void resetShip() {
+    public void reset() {
         this.x = app.width/2;
         this.y = app.height-50;
         this.w = 20;

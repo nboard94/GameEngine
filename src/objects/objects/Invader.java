@@ -46,7 +46,7 @@ public class Invader extends _GameObject implements Bounded,Collidable, Displaya
         speedY = speed;
     }
 
-    public void resetInvader() {
+    public void reset() {
         alive = true;
         this.x = startX;
         this.y = startY;

@@ -10,6 +10,7 @@ import objects.components.EventDriven;
 import objects.components.Movable;
 import objects.objects.*;
 import processing.core.PApplet;
+import scripting.ScriptManager_JS;
 import time.LocalTime;
 
 import java.io.Serializable;
@@ -111,11 +112,15 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
         wins=0;
         dead = false;
         for(_GameObject g : space) {
-            if(g.getClass() == Ship.class) {
-                ((Ship)g).resetShip();
-            } else if(g.getClass() == Invader.class) {
-                ((Invader)g).resetInvader();
-            }
+            ScriptManager_JS.loadScript("src\\scripting\\scripts\\reset_object.js");
+            ScriptManager_JS.bindArgument("o", g);
+            ScriptManager_JS.executeScript();
+
+//            if(g.getClass() == Ship.class) {
+//                ((Ship)g).reset();
+//            } else if(g.getClass() == Invader.class) {
+//                ((Invader)g).reset();
+//            }
         }
         loop();
     }
@@ -126,7 +131,9 @@ public class GameEngine extends PApplet implements EventDriven, Serializable {
             wins++;
             for(_GameObject g : space) {
                 if(g.getClass() == Invader.class) {
-                    ((Invader)g).resetInvader();
+                    ScriptManager_JS.loadScript("src\\scripting\\scripts\\reset_object.js");
+                    ScriptManager_JS.bindArgument("o", g);
+                    ScriptManager_JS.executeScript();
                 }
             }
             remaining = 24;
